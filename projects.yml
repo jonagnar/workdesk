@@ -1,0 +1,11 @@
+# Manifest of every project this workdesk indexes.
+# This file is descriptive only — nothing reads it as a runtime dependency.
+# Each project remains fully standalone and clonable without this repo.
+#
+# - name: example-project
+#   canonical: git@forgejo.example.com:jon/example-project.git
+#   mirror: git@github.com:jonnxor/example-project.git
+#   path: ~/projects/example-project
+#   kind: app        # app | servers | other
+
+projects: []

@@ -1,0 +1,10 @@
+# Never commit unencrypted secrets
+*.key
+*.pem
+.env
+.env.*
+!.env.example
+
+# OS / editor noise
+.DS_Store
+*.swp
