@@ -1,0 +1,47 @@
+{% if language == "python" %}
+FROM docker.io/library/python:3.13-slim
+WORKDIR /app
+COPY . .
+RUN pip install --no-cache-dir uv && uv sync --frozen --no-dev
+CMD ["uv", "run", "python", "-m", "{{ project_slug | replace('-', '_') }}"]
+{% elif language == "node" %}
+FROM docker.io/library/node:lts-slim
+WORKDIR /app
+COPY package*.json ./
+RUN npm ci --omit=dev
+COPY . .
+CMD ["node", "."]
+{% elif language == "rust" %}
+FROM docker.io/library/rust:1 AS build
+WORKDIR /src
+COPY . .
+RUN cargo build --release
+
+FROM docker.io/library/debian:bookworm-slim
+COPY --from=build /src/target/release/{{ project_slug }} /usr/local/bin/{{ project_slug }}
+CMD ["{{ project_slug }}"]
+{% elif language == "go" %}
+FROM docker.io/library/golang:1 AS build
+WORKDIR /src
+COPY . .
+RUN CGO_ENABLED=0 go build -o /out/{{ project_slug }} .
+
+FROM gcr.io/distroless/static-debian12
+COPY --from=build /out/{{ project_slug }} /{{ project_slug }}
+ENTRYPOINT ["/{{ project_slug }}"]
+{% elif language == "dotnet" %}
+FROM mcr.microsoft.com/dotnet/sdk:10.0 AS build
+WORKDIR /src
+COPY . .
+RUN dotnet publish -c Release -o /out
+
+FROM mcr.microsoft.com/dotnet/aspnet:10.0
+WORKDIR /app
+COPY --from=build /out .
+ENTRYPOINT ["dotnet", "{{ project_name | replace(' ', '') }}.dll"]
+{% else %}
+FROM docker.io/library/alpine:3
+WORKDIR /app
+COPY . .
+CMD ["sh"]
+{% endif %}

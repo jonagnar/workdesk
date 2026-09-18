@@ -1,0 +1,14 @@
+pre-commit:
+  jobs:
+    - name: fmt
+      run: mise run fmt
+      stage_fixed: true
+    - name: lint
+      run: mise run lint
+
+commit-msg:
+  jobs:
+    - name: conventional-commits
+      run: >
+        grep -qE '^(feat|fix|chore|docs|refactor|test|perf|ci|build|style|revert)(\([a-z0-9._/-]+\))?!?: .+' "{1}"
+        || { echo "commit message must follow Conventional Commits (e.g. 'feat: add thing')"; exit 1; }

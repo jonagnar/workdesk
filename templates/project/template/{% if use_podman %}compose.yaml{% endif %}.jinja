@@ -1,0 +1,25 @@
+# Local development only. Production runs from Podman Quadlet units in the
+# servers repo, referencing the image this repo's CI builds.
+services:
+  app:
+    build: .
+    image: localhost/{{ project_slug }}:dev
+{% if use_database %}
+    depends_on:
+      - db
+    environment:
+      DATABASE_URL: postgres://postgres:${POSTGRES_PASSWORD:-dev}@db:5432/{{ project_slug | replace('-', '_') }}
+
+  db:
+    image: docker.io/library/postgres:17
+    environment:
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-dev}
+      POSTGRES_DB: {{ project_slug | replace('-', '_') }}
+    ports:
+      - "5432:5432"
+    volumes:
+      - dbdata:/var/lib/postgresql/data
+
+volumes:
+  dbdata:
+{% endif %}

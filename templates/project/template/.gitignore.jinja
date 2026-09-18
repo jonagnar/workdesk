@@ -1,0 +1,38 @@
+# Never commit unencrypted secrets (encrypted *.enc.* files are fine)
+*.key
+*.pem
+.env
+.env.*
+!.env.enc.*
+!.env.example
+
+# OS / editor noise
+.DS_Store
+*.swp
+{% if language == "python" %}
+
+# Python
+.venv/
+__pycache__/
+*.pyc
+.pytest_cache/
+.ruff_cache/
+{% elif language == "node" %}
+
+# Node
+node_modules/
+dist/
+{% elif language == "rust" %}
+
+# Rust
+target/
+{% elif language == "go" %}
+
+# Go
+bin/
+{% elif language == "dotnet" %}
+
+# .NET
+bin/
+obj/
+{% endif %}

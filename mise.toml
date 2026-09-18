@@ -1,0 +1,3 @@
+[tasks.new]
+description = "Scaffold a standalone project: mise run new -- ~/projects/<name>"
+run = "copier copy --trust {{config_root}}/templates/project"

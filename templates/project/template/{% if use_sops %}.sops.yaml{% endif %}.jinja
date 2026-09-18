@@ -1,0 +1,6 @@
+# Anything named *.enc.<ext> is encrypted to these age recipients.
+# Add a second recipient when a file must also decrypt somewhere the personal
+# key never lives (e.g. a server's own key).
+creation_rules:
+  - path_regex: \.enc\.(ya?ml|json|env|toml)$
+    age: {{ age_recipient }}

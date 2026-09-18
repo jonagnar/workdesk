@@ -1,0 +1,50 @@
+# {{ project_name }} — rules for Claude Code
+
+{% if description %}
+{{ description }}
+
+{% endif %}
+## Workflow: spec first, test first
+
+1. **SDD** — a change starts as a spec (what "done" means), not as code.
+   If no spec exists for what you're asked to do, write one and confirm it
+   before implementing.
+2. **TDD** — write the failing test, then the implementation, then iterate
+   until `mise run test` is green.
+3. Before saying you're done: `mise run fmt && mise run lint && mise run test`.
+
+## Task verbs
+
+Use the mise tasks, never the underlying tool directly — they are the
+contract this repo shares with every other project:
+`mise run fmt`, `mise run lint`, `mise run test`{% if use_podman %}, `mise run up`, `mise run down`{% endif %}.
+
+## Commits
+
+Conventional Commits: `feat:`, `fix:`, `chore:`, `docs:`, `refactor:`,
+`test:`, `perf:`, `ci:`, `build:`.
+{% if use_lefthook %}
+Lefthook enforces this on commit-msg and runs fmt + lint on pre-commit.
+{% endif %}
+{% if use_sops %}
+
+## Secrets
+
+Never write a secret in plaintext into any tracked file. Secrets go in
+`.env.enc.yaml` via `sops edit .env.enc.yaml`; mise loads them into the
+environment. Never print decrypted secrets into the conversation.
+{% endif %}
+{% if kind == "servers" %}
+
+## This is a servers repo
+
+It *runs* things, it does not *build* them. Reference container images by
+tag; never vendor application source here. Prod secrets must be encrypted
+to the server's own age recipient, never only to a personal key.
+{% endif %}
+
+## Standalone
+
+This repo has no dependency on the workdesk template it was generated from.
+Do not add relative imports, symlinks, or `@`-includes that reach outside
+this repository.

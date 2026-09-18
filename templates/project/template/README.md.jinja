@@ -1,0 +1,43 @@
+# {{ project_name }}
+
+{{ description }}
+
+## Quickstart
+
+```bash
+mise install        # pins every tool this repo needs
+mise run test
+```
+
+Common verbs (same in every project):
+
+| verb            | does                          |
+| --------------- | ----------------------------- |
+| `mise run fmt`  | format                        |
+| `mise run lint` | lint                          |
+| `mise run test` | run the test suite            |
+{% if use_podman %}
+| `mise run up`   | start local services (podman) |
+| `mise run down` | stop them                     |
+{% endif %}
+{% if use_sops %}
+
+## Secrets
+
+Secrets live in `.env.enc.yaml`, encrypted with sops to the age recipient in
+`.sops.yaml`. mise decrypts them into the environment automatically.
+
+```bash
+sops edit .env.enc.yaml
+```
+{% endif %}
+
+## Scaffolding
+
+Generated from the workdesk `project` template. This repo is fully
+standalone — nothing here references the template at build or run time. To
+pull in later template improvements (an explicit, reviewable step):
+
+```bash
+copier update --trust
+```

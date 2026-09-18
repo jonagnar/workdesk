@@ -1,0 +1,81 @@
+# Self-contained: tool pins + the shared task verbs (fmt / lint / test / up / down).
+{% if language != "none" %}
+
+[tools]
+{% if language == "python" %}
+python = "3.13"
+uv = "latest"
+{% elif language == "node" %}
+node = "lts"
+{% elif language == "rust" %}
+rust = "stable"
+{% elif language == "go" %}
+go = "latest"
+{% elif language == "dotnet" %}
+dotnet = "latest"
+{% endif %}
+{% endif %}
+{% if use_sops %}
+
+[env]
+# sops-encrypted; mise decrypts with the age key at settings.sops.age_key_file
+_.file = { path = ".env.enc.yaml", redact = true }
+{% endif %}
+
+[tasks.fmt]
+description = "Format code"
+{% if language == "python" %}
+run = "uv run ruff format ."
+{% elif language == "node" %}
+run = "npx prettier --write ."
+{% elif language == "rust" %}
+run = "cargo fmt"
+{% elif language == "go" %}
+run = "gofmt -w ."
+{% elif language == "dotnet" %}
+run = "dotnet format"
+{% else %}
+run = "echo 'fmt: no formatter configured'"
+{% endif %}
+
+[tasks.lint]
+description = "Lint code"
+{% if language == "python" %}
+run = "uv run ruff check ."
+{% elif language == "node" %}
+run = "npx eslint ."
+{% elif language == "rust" %}
+run = "cargo clippy -- -D warnings"
+{% elif language == "go" %}
+run = "go vet ./..."
+{% elif language == "dotnet" %}
+run = "dotnet build -warnaserror"
+{% else %}
+run = "echo 'lint: no linter configured'"
+{% endif %}
+
+[tasks.test]
+description = "Run the test suite"
+{% if language == "python" %}
+run = "uv run pytest"
+{% elif language == "node" %}
+run = "npm test"
+{% elif language == "rust" %}
+run = "cargo test"
+{% elif language == "go" %}
+run = "go test ./..."
+{% elif language == "dotnet" %}
+run = "dotnet test"
+{% else %}
+run = "echo 'test: no tests configured'"
+{% endif %}
+{% if use_podman %}
+
+[tasks.up]
+description = "Start local services"
+run = "podman compose up -d"
+
+[tasks.down]
+description = "Stop local services"
+run = "podman compose down"
+{% endif %}

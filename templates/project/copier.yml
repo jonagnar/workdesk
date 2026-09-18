@@ -1,0 +1,88 @@
+_min_copier_version: "9.1.0"
+_subdirectory: template
+_answers_file: .copier-answers.yml
+_envops:
+  trim_blocks: true
+  lstrip_blocks: true
+
+# Project-owned after first generation; `copier update` never touches these.
+_skip_if_exists:
+  - README.md
+  - .env.enc.yaml
+
+_tasks:
+  - command: "test -d .git || git init -q"
+  - command: "lefthook install"
+    when: "{{ use_lefthook }}"
+  - command: "grep -q '^sops:' .env.enc.yaml || sops -e -i .env.enc.yaml"
+    when: "{{ use_sops }}"
+
+_message_after_copy: |
+  {{ project_slug }} scaffolded — fully standalone, no reference back to workdesk.
+  Next:  cd {{ _copier_conf.dst_path }} && mise install && mise run test
+
+# ---------------------------------------------------------------- questions
+
+project_name:
+  type: str
+  help: Human-readable project name
+  validator: "{% if not project_name %}project_name is required{% endif %}"
+
+project_slug:
+  type: str
+  help: Directory / package-style name
+  default: "{{ project_name | lower | replace(' ', '-') }}"
+
+description:
+  type: str
+  help: One line, used in README and CLAUDE.md
+  default: ""
+
+kind:
+  type: str
+  help: app = builds a deployable artifact, library = published package, servers = runs things (Quadlet units, prod config)
+  choices: [app, library, servers]
+  default: app
+
+language:
+  type: str
+  help: Primary language — sets mise tool pins and the fmt/lint/test commands
+  choices: [none, python, node, rust, go, dotnet]
+  default: none
+
+use_lefthook:
+  type: bool
+  help: Git hooks — fmt + lint on pre-commit, Conventional Commits check on commit-msg
+  default: true
+
+use_claude_md:
+  type: bool
+  help: CLAUDE.md with the SDD/TDD loop and repo rules for Claude Code
+  default: true
+
+use_sops:
+  type: bool
+  help: sops + age — a .env.enc.yaml that mise decrypts into the environment
+  default: true
+
+age_recipient:
+  type: str
+  help: age public key that can decrypt this project's secrets
+  default: age10zw47wxsr0uhaw32hqcsvx2zsnczvldg99fy7fm6wwpcc09fvynqujfme6
+  when: "{{ use_sops }}"
+
+use_podman:
+  type: bool
+  help: Containerfile + compose.yaml for local dev (mise run up / down)
+  default: false
+
+use_database:
+  type: bool
+  help: Add a Postgres service to compose.yaml
+  default: false
+  when: "{{ use_podman }}"
+
+use_bruno:
+  type: bool
+  help: Bruno API collection (bruno/) versioned next to the code
+  default: false

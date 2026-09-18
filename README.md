@@ -54,8 +54,11 @@ vault.
 - [x] workdesk repo created (`~/projects/workdesk`)
 - [ ] Forgejo canonical remote + GitHub push-mirror wired up
 - [ ] `projects.yml` populated
-- [ ] Copier template skeleton (lefthook, mise.toml, CLAUDE.md, optional
-      podman compose / db service, all toggleable)
+- [x] Copier template (`templates/project`): lefthook, mise.toml, CLAUDE.md,
+      sops, optional podman compose / db service / bruno — all toggleable.
+      `mise run new -- ~/projects/<name>`
+- [x] mise decrypts sops secrets with the shared key
+      (`mise settings sops.age_key_file`)
 - [ ] Obsidian vault created (GSD structure)
 - [ ] restic + Backblaze B2 configured, nightly job, retention policy
 - [ ] `servers` repo scaffolded (Quadlet units, prod sops recipient)

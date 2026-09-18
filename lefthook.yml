@@ -1,0 +1,6 @@
+commit-msg:
+  jobs:
+    - name: conventional-commits
+      run: >
+        grep -qE '^(feat|fix|chore|docs|refactor|test|perf|ci|build|style|revert)(\([a-z0-9._/-]+\))?!?: .+' "{1}"
+        || { echo "commit message must follow Conventional Commits (e.g. 'feat: add thing')"; exit 1; }
