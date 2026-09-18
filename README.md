@@ -48,7 +48,9 @@ vault.
 ## Status
 
 - [x] Root of trust: age + sops present on this machine
-- [ ] Age keypair generated, private key backed up (Bitwarden + B2 + paper)
+- [x] Age keypair in place (`~/.config/sops/age/keys.txt`, public key in
+      `.sops.yaml`)
+- [ ] Age private key backed up (Bitwarden + B2 + paper)
 - [x] workdesk repo created (`~/projects/workdesk`)
 - [ ] Forgejo canonical remote + GitHub push-mirror wired up
 - [ ] `projects.yml` populated

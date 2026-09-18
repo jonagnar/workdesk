@@ -1,0 +1,9 @@
+# Files matching these rules are encrypted with sops to the listed age
+# recipients. Convention: anything sensitive is named *.enc.<ext> so it is
+# obvious at a glance which files must never exist in plaintext in git.
+#
+# Add a second recipient (e.g. a server's own key) to a rule when a file must
+# also be decryptable somewhere your personal key never lives.
+creation_rules:
+  - path_regex: \.enc\.(ya?ml|json|env|toml)$
+    age: age10zw47wxsr0uhaw32hqcsvx2zsnczvldg99fy7fm6wwpcc09fvynqujfme6
