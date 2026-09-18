@@ -64,7 +64,11 @@ vault.
 - [x] restic scaffold: `backup/` + `mise run backup*` tasks + systemd timer
 - [ ] Backblaze B2 account → fill `backup/restic.env.enc.yaml` →
       `mise run backup:init` → `mise run backup:install`
-- [ ] `servers` repo scaffolded (Quadlet units, prod sops recipient)
+- [x] `servers` repo scaffolded from the template: host `home` with Forgejo
+      16.0.5 (rootless) + Caddy Quadlet units, `mise run lint` dry-runs the
+      generator, `mise run deploy -- home`
+- [ ] Box bootstrapped (podman, linger, sysctl, server age key added as
+      second sops recipient), router + DNS for git.jonnxor.is, first deploy
 
 Tools on this machine: git, age, sops, mise, podman, gh (system packages);
 restic, lefthook, copier (installed globally via mise — see
