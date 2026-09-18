@@ -1,0 +1,9 @@
+**/.git/objects
+**/node_modules
+**/target
+**/.venv
+**/__pycache__
+**/.cache
+**/bin/Debug
+**/bin/Release
+**/obj

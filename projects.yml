@@ -8,4 +8,21 @@
 #   path: ~/projects/example-project
 #   kind: app        # app | servers | other
 
-projects: []
+# canonical/mirror are null until the Forgejo instance exists and GitHub is
+# authenticated; fill them in then.
+projects:
+  - name: workdesk
+    canonical: ~
+    mirror: ~
+    path: ~/projects/workdesk
+    kind: other
+  - name: vault
+    canonical: ~
+    mirror: ~
+    path: ~/projects/vault
+    kind: other
+  - name: servers
+    canonical: ~
+    mirror: ~
+    path: ~/projects/servers
+    kind: servers

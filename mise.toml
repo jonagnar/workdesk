@@ -1,3 +1,44 @@
+[env]
+# restic + B2 credentials (sops-encrypted); see backup/README.md
+_.file = { path = "backup/restic.env.enc.yaml", redact = true }
+
 [tasks.new]
 description = "Scaffold a standalone project: mise run new -- ~/projects/<name>"
 run = "copier copy --trust {{config_root}}/templates/project"
+
+[tasks.backup]
+description = "Snapshot backup/include.txt to the restic repo, then apply retention"
+run = """
+restic backup --files-from backup/include.txt --exclude-file backup/exclude.txt --tag scheduled
+restic forget --keep-daily 7 --keep-weekly 4 --keep-monthly 6 --prune
+"""
+
+[tasks."backup:init"]
+description = "Create the restic repository (once)"
+run = "restic init"
+
+[tasks."backup:snapshots"]
+description = "List snapshots"
+run = "restic snapshots"
+
+[tasks."backup:check"]
+description = "Verify repository integrity"
+run = "restic check"
+
+[tasks."backup:install"]
+description = "Install and enable the nightly systemd user timer"
+run = """
+mkdir -p ~/.config/systemd/user
+cp backup/restic-backup.service backup/restic-backup.timer ~/.config/systemd/user/
+systemctl --user daemon-reload
+systemctl --user enable --now restic-backup.timer
+systemctl --user list-timers restic-backup.timer
+"""
+
+[tasks."backup:restore-test"]
+description = "Restore the age key from the latest snapshot into a scratch dir"
+run = """
+dir=$(mktemp -d)
+restic restore latest --target "$dir" --include /home/jonnxor/.config/sops/age/keys.txt
+echo "restored into $dir:"; find "$dir" -type f
+"""
