@@ -50,17 +50,20 @@ vault.
 - [x] Root of trust: age + sops present on this machine
 - [x] Age keypair in place (`~/.config/sops/age/keys.txt`, public key in
       `.sops.yaml`)
-- [ ] Age private key backed up (Bitwarden + B2 + paper)
+- [x] Age private key in Bitwarden
+- [ ] Age private key also in B2 (via restic) + paper copy
 - [x] workdesk repo created (`~/projects/workdesk`)
+- [x] `gh auth login` done (GitHub account: `jonagnar`)
 - [ ] Forgejo self-hosted (part of the `servers` repo), then canonical
-      remotes + GitHub push-mirror wired up (`gh auth login` first)
+      remotes + GitHub push-mirror wired up
 - [x] `projects.yml` populated (remotes pending Forgejo)
 - [x] Copier template (`templates/project`): lefthook, mise.toml, CLAUDE.md,
       sops, optional podman compose / db service / bruno — all toggleable.
       `mise run new -- ~/projects/<name>`
 - [x] mise decrypts sops secrets with the shared key
       (`mise settings sops.age_key_file`)
-- [x] Obsidian vault created (`~/projects/vault`, GSD structure, own git repo)
+- [x] Obsidian vault created (`~/projects/vault`, GSD structure, own git
+      repo), opened in Obsidian with Templates enabled
 - [x] restic scaffold: `backup/` + `mise run backup*` tasks + systemd timer
 - [ ] Backblaze B2 account → fill `backup/restic.env.enc.yaml` →
       `mise run backup:init` → `mise run backup:install`
