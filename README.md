@@ -58,5 +58,6 @@ vault.
 - [ ] restic + Backblaze B2 configured, nightly job, retention policy
 - [ ] `servers` repo scaffolded (Quadlet units, prod sops recipient)
 
-Tools already on this machine: git, age, sops, mise, podman, gh.
-Still needed: restic, copier, lefthook.
+Tools on this machine: git, age, sops, mise, podman, gh (system packages);
+restic, lefthook, copier (installed globally via mise — see
+`~/.config/mise/config.toml`).
