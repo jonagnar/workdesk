@@ -9,7 +9,7 @@ references this directory afterwards.
 Scaffold a new standalone project repo:
 
 ```bash
-mise run new -- ~/Projects/<name>
+mise run new -- ~/Projects/workdesk/<name>
 ```
 
 (wraps `copier copy --trust templates/project <dest>`; `--trust` lets the
@@ -24,7 +24,7 @@ To pull later template improvements into an existing project — explicit and
 reviewable, never automatic:
 
 ```bash
-cd ~/Projects/<name> && copier update --trust
+cd ~/Projects/workdesk/workdesk/<name> && copier update --trust
 ```
 
 `README.md` and `.env.enc.yaml` are project-owned and never touched by

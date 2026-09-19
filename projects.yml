@@ -5,7 +5,7 @@
 #                           drift (listed but missing, or present but unlisted)
 #   mise run desk:clone   — materialise the whole desk on a fresh machine
 #
-# A project lives at ~/Projects/<name> and is a standalone git repo. This file
+# A project lives at ~/Projects/workdesk/<name> and is a standalone git repo. This file
 # records where each one CAME FROM — never anything it depends on.
 #
 # canonical: the Forgejo remote (source of truth)

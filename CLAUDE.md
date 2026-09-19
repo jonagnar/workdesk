@@ -1,10 +1,12 @@
 # workdesk — rules
 
-- `~/Projects` **is** the desk: this repo's files sit at the top level, and
-  every project is a subdirectory that is its own standalone git repo. The
-  desk never tracks a project's contents — `.gitignore` denies every
-  top-level directory and allows back only `backup/`, `scripts/`,
+- `~/Projects/workdesk` **is** the desk: this repo's files sit at its top
+  level, and every project is a subdirectory that is its own standalone git
+  repo. The desk never tracks a project's contents — `.gitignore` denies
+  every top-level directory and allows back only `backup/`, `scripts/`,
   `templates/`. Never remove that guard.
+- The desk is bounded: `~/Projects` outside it is ordinary, untracked space
+  for anything that isn't a desk project. Don't widen the desk to cover it.
 - This repo is the canonical *source* of templates and conventions. Never
   make a project repo reference it at build/run time (no relative imports,
   no symlinks, no `@`-imports outside a project's own root). Propagation is

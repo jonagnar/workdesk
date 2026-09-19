@@ -3,7 +3,7 @@
 _.file = { path = "backup/restic.env.enc.yaml", redact = true }
 
 [tasks.new]
-description = "Scaffold a standalone project onto the desk: mise run new -- ~/Projects/<name>"
+description = "Scaffold a standalone project onto the desk: mise run new -- ~/Projects/workdesk/<name>"
 run = "copier copy --trust {{config_root}}/templates/project"
 
 [tasks."desk:status"]

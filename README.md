@@ -1,15 +1,20 @@
 # workdesk
 
-`~/Projects` **is** the workdesk — a desk, not a dependency. Its own files
-sit at the top level; every project is a subdirectory that is its own
+`~/Projects/workdesk` **is** the desk — a desk, not a dependency. Its own
+files sit at the top level; every project is a subdirectory that is its own
 standalone git repo, ignored by this one.
 
 ```
-~/Projects/            ← this repo: CLAUDE.md, projects.yml, templates/, backup/, scripts/
-  vault/               ← own repo, ignored here
-  servers/             ← own repo, ignored here
-  <new project>/       ← same
+~/Projects/              ← ordinary space; anything not a desk project lives here
+└── workdesk/            ← this repo: CLAUDE.md, projects.yml, templates/, backup/, scripts/
+    ├── vault/           ← own repo, ignored here
+    ├── servers/         ← own repo, ignored here
+    └── <new project>/   ← same
 ```
+
+The desk is deliberately bounded. Clone a stranger's repo or start a scratch
+experiment in `~/Projects` and the desk neither tracks it, backs it up, nor
+reports it as drift.
 
 No project ever references the desk at build or run time: config reaches a
 project by *copy* (a copier template) or as a *real published package*.
@@ -56,8 +61,8 @@ vault.
    to `~/.config/sops/age/keys.txt`.
 2. `sops` can now decrypt anything encrypted to that key — including
    `backup/restic.env.enc.yaml`, which holds the B2 credentials.
-3. Clone this repo to `~/Projects`, then `mise run desk:clone` to pull every
-   project in `projects.yml` back onto the desk.
+3. Clone this repo to `~/Projects/workdesk`, then `mise run desk:clone` to
+   pull every project in `projects.yml` back onto the desk.
 4. `mise run backup:restore-test`, or a full `restic restore`, brings back
    anything not in git (the vault's untracked state, local-only work).
 5. Everything else (lint configs, hooks, mise tasks) is plain text already
@@ -71,7 +76,8 @@ vault.
 - [x] Age private key in Bitwarden
 - [x] Age private key also in B2 (restic snapshot, restore-tested 2026-09-19)
 - [ ] Age private key paper copy
-- [x] Desk is `~/Projects` itself; projects are ignored subdirectories
+- [x] Desk is `~/Projects/workdesk`, bounded; projects are ignored
+      subdirectories inside it
 - [x] `gh auth login` done (GitHub account: `jonagnar`)
 - [ ] Forgejo self-hosted (part of the `servers` repo), then canonical
       remotes + GitHub push-mirror wired up
@@ -79,10 +85,10 @@ vault.
       Forgejo)
 - [x] Copier template (`templates/project`): lefthook, mise.toml, CLAUDE.md,
       sops, optional podman compose / db service / bruno — all toggleable.
-      `mise run new -- ~/Projects/<name>`
+      `mise run new -- ~/Projects/workdesk/<name>`
 - [x] mise decrypts sops secrets with the shared key
       (`mise settings sops.age_key_file`)
-- [x] Obsidian vault created (`~/Projects/vault`, GSD structure, own git
+- [x] Obsidian vault created (`~/Projects/workdesk/vault`, GSD structure, own git
       repo), opened in Obsidian with Templates enabled
 - [x] restic scaffold: `backup/` + `mise run backup*` tasks + systemd timer
 - [x] Backblaze B2: repo initialised, first snapshot taken, nightly timer
