@@ -51,7 +51,8 @@ vault.
 - [x] Age keypair in place (`~/.config/sops/age/keys.txt`, public key in
       `.sops.yaml`)
 - [x] Age private key in Bitwarden
-- [ ] Age private key also in B2 (via restic) + paper copy
+- [x] Age private key also in B2 (restic snapshot, restore-tested 2026-09-19)
+- [ ] Age private key paper copy
 - [x] workdesk repo created (`~/projects/workdesk`)
 - [x] `gh auth login` done (GitHub account: `jonagnar`)
 - [ ] Forgejo self-hosted (part of the `servers` repo), then canonical
@@ -65,8 +66,8 @@ vault.
 - [x] Obsidian vault created (`~/projects/vault`, GSD structure, own git
       repo), opened in Obsidian with Templates enabled
 - [x] restic scaffold: `backup/` + `mise run backup*` tasks + systemd timer
-- [ ] Backblaze B2 account → fill `backup/restic.env.enc.yaml` →
-      `mise run backup:init` → `mise run backup:install`
+- [x] Backblaze B2: repo initialised, first snapshot taken, nightly timer
+      enabled (03:00), restore test passed. Next restore test due 2026-12-19.
 - [x] `servers` repo scaffolded from the template: host `home` with Forgejo
       16.0.5 (rootless) + Caddy Quadlet units, `mise run lint` dry-runs the
       generator, `mise run deploy -- home`
