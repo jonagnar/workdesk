@@ -1,5 +1,3 @@
-/home/jonnxor/Projects/workdesk
-/home/jonnxor/Projects/vault
-/home/jonnxor/Projects/servers
+/home/jonnxor/Projects
 /home/jonnxor/.config/sops/age/keys.txt
 /home/jonnxor/.config/mise/config.toml

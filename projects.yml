@@ -1,28 +1,25 @@
-# Manifest of every project this workdesk indexes.
-# This file is descriptive only — nothing reads it as a runtime dependency.
-# Each project remains fully standalone and clonable without this repo.
+# Every project on the desk.
 #
-# - name: example-project
-#   canonical: git@forgejo.example.com:jon/example-project.git
-#   mirror: git@github.com:jonnxor/example-project.git
-#   path: ~/Projects/example-project
-#   kind: app        # app | servers | other
+# This is read by:
+#   mise run desk:status  — what's on the desk, what state it's in, and any
+#                           drift (listed but missing, or present but unlisted)
+#   mise run desk:clone   — materialise the whole desk on a fresh machine
+#
+# A project lives at ~/Projects/<name> and is a standalone git repo. This file
+# records where each one CAME FROM — never anything it depends on.
+#
+# canonical: the Forgejo remote (source of truth)
+# mirror:    the GitHub push-mirror (convenience copy, never load-bearing)
+# kind:      app | library | servers | notes
+#
+# Both remotes are null until the Forgejo instance is up.
 
-# canonical/mirror are null until the Forgejo instance exists and GitHub is
-# authenticated; fill them in then.
 projects:
-  - name: workdesk
-    canonical: ~
-    mirror: ~
-    path: ~/Projects/workdesk
-    kind: other
   - name: vault
     canonical: ~
     mirror: ~
-    path: ~/Projects/vault
-    kind: other
+    kind: notes
   - name: servers
     canonical: ~
     mirror: ~
-    path: ~/Projects/servers
     kind: servers

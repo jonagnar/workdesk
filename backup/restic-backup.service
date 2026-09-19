@@ -3,7 +3,7 @@ Description=restic backup (workdesk include.txt -> Backblaze B2)
 
 [Service]
 Type=oneshot
-WorkingDirectory=%h/Projects/workdesk
+WorkingDirectory=%h/Projects
 ExecStart=/usr/bin/mise run backup
 Nice=10
 IOSchedulingClass=idle

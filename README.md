@@ -1,19 +1,35 @@
 # workdesk
 
-This is the meta repo — the **workdesk**, not a dependency. It holds the
-canonical templates, conventions, and manifest for every other project. No
-project repo ever references this one at build or run time: everything
-reaches a project by *copy* (via a copier template) or as a *real published
-package*. Delete this repo and every project still builds, lints, and runs
-exactly the same.
+`~/Projects` **is** the workdesk — a desk, not a dependency. Its own files
+sit at the top level; every project is a subdirectory that is its own
+standalone git repo, ignored by this one.
+
+```
+~/Projects/            ← this repo: CLAUDE.md, projects.yml, templates/, backup/, scripts/
+  vault/               ← own repo, ignored here
+  servers/             ← own repo, ignored here
+  <new project>/       ← same
+```
+
+No project ever references the desk at build or run time: config reaches a
+project by *copy* (a copier template) or as a *real published package*.
+Delete everything but a project's own folder and it still builds, lints and
+runs exactly the same.
+
+| verb                    | does                                              |
+| ----------------------- | ------------------------------------------------- |
+| `mise run desk:status`  | what's on the desk, its state, drift vs manifest  |
+| `mise run desk:clone`   | clone missing manifest projects (fresh machine)   |
+| `mise run new -- <dir>` | scaffold a new standalone project                 |
+| `mise run backup`       | restic snapshot → B2 + retention                  |
 
 ## Layers
 
 1. **Root of trust** — Bitwarden (vault) + age (keypair) + sops (encrypts
    secrets so they can live committed in any repo).
-2. **This repo** — canonical hooks, lint/format config, `mise.toml` and
-   `CLAUDE.md` templates, and `projects.yml`, the manifest of every project
-   (name, canonical remote, mirror).
+2. **The desk (this repo)** — canonical hooks, lint/format config,
+   `mise.toml` and `CLAUDE.md` templates, and `projects.yml`, the manifest
+   that `desk:status` and `desk:clone` read.
 3. **Per-project environment** — mise owns the task verbs (`fmt`, `lint`,
    `test`, `up`, `down`) so every project speaks the same commands regardless
    of language. Lefthook + a commit convention, copied in per project.
@@ -36,12 +52,14 @@ Assume whoever reads this (you, in five years, with no memory of any of
 this) has only: this repo, the age private key backup, and the Bitwarden
 vault.
 
-1. Restore the age private key (Bitwarden secure note, or the restic/B2
-   backup, or the paper copy).
-2. `sops` can now decrypt anything in any project repo that was encrypted
-   to that key.
-3. Clone this repo, then clone each project from `projects.yml`.
-4. Restore the Obsidian vault from the restic/B2 backup.
+1. Restore the age private key (Bitwarden secure note, or the paper copy)
+   to `~/.config/sops/age/keys.txt`.
+2. `sops` can now decrypt anything encrypted to that key — including
+   `backup/restic.env.enc.yaml`, which holds the B2 credentials.
+3. Clone this repo to `~/Projects`, then `mise run desk:clone` to pull every
+   project in `projects.yml` back onto the desk.
+4. `mise run backup:restore-test`, or a full `restic restore`, brings back
+   anything not in git (the vault's untracked state, local-only work).
 5. Everything else (lint configs, hooks, mise tasks) is plain text already
    sitting in each project repo — nothing else to reconstruct.
 
@@ -53,11 +71,12 @@ vault.
 - [x] Age private key in Bitwarden
 - [x] Age private key also in B2 (restic snapshot, restore-tested 2026-09-19)
 - [ ] Age private key paper copy
-- [x] workdesk repo created (`~/Projects/workdesk`)
+- [x] Desk is `~/Projects` itself; projects are ignored subdirectories
 - [x] `gh auth login` done (GitHub account: `jonagnar`)
 - [ ] Forgejo self-hosted (part of the `servers` repo), then canonical
       remotes + GitHub push-mirror wired up
-- [x] `projects.yml` populated (remotes pending Forgejo)
+- [x] `projects.yml` drives `desk:status` / `desk:clone` (remotes pending
+      Forgejo)
 - [x] Copier template (`templates/project`): lefthook, mise.toml, CLAUDE.md,
       sops, optional podman compose / db service / bruno — all toggleable.
       `mise run new -- ~/Projects/<name>`

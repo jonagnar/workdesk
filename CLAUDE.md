@@ -1,5 +1,10 @@
 # workdesk — rules
 
+- `~/Projects` **is** the desk: this repo's files sit at the top level, and
+  every project is a subdirectory that is its own standalone git repo. The
+  desk never tracks a project's contents — `.gitignore` denies every
+  top-level directory and allows back only `backup/`, `scripts/`,
+  `templates/`. Never remove that guard.
 - This repo is the canonical *source* of templates and conventions. Never
   make a project repo reference it at build/run time (no relative imports,
   no symlinks, no `@`-imports outside a project's own root). Propagation is
@@ -10,6 +15,7 @@
   ad-hoc script names.
 - Never commit an unencrypted secret. Anything sensitive in this repo goes
   through `sops` first.
-- `projects.yml` is the single manifest of every project this workdesk
-  indexes — keep remotes host-agnostic (canonical + mirror fields), never
-  hardcode a single provider as load-bearing.
+- `projects.yml` is the single manifest of every project on the desk, read by
+  `mise run desk:status` and `desk:clone`. Add an entry whenever a project is
+  scaffolded or cloned, and keep remotes host-agnostic (canonical + mirror),
+  never hardcoding a single provider as load-bearing.

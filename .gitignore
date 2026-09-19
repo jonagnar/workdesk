@@ -1,8 +1,17 @@
-# Never commit unencrypted secrets
+# Projects on the desk are their own standalone repos — the desk never tracks
+# their contents. Deny every top-level directory, then allow back the desk's
+# own. A new project can therefore never be committed into here by accident.
+/*/
+!/backup/
+!/scripts/
+!/templates/
+
+# Never commit unencrypted secrets (encrypted *.enc.* files are fine)
 *.key
 *.pem
 .env
 .env.*
+!.env.enc.*
 !.env.example
 
 # OS / editor noise
