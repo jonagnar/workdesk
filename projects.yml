@@ -5,7 +5,7 @@
 # - name: example-project
 #   canonical: git@forgejo.example.com:jon/example-project.git
 #   mirror: git@github.com:jonnxor/example-project.git
-#   path: ~/projects/example-project
+#   path: ~/Projects/example-project
 #   kind: app        # app | servers | other
 
 # canonical/mirror are null until the Forgejo instance exists and GitHub is
@@ -14,15 +14,15 @@ projects:
   - name: workdesk
     canonical: ~
     mirror: ~
-    path: ~/projects/workdesk
+    path: ~/Projects/workdesk
     kind: other
   - name: vault
     canonical: ~
     mirror: ~
-    path: ~/projects/vault
+    path: ~/Projects/vault
     kind: other
   - name: servers
     canonical: ~
     mirror: ~
-    path: ~/projects/servers
+    path: ~/Projects/servers
     kind: servers

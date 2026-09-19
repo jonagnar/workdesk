@@ -53,17 +53,17 @@ vault.
 - [x] Age private key in Bitwarden
 - [x] Age private key also in B2 (restic snapshot, restore-tested 2026-09-19)
 - [ ] Age private key paper copy
-- [x] workdesk repo created (`~/projects/workdesk`)
+- [x] workdesk repo created (`~/Projects/workdesk`)
 - [x] `gh auth login` done (GitHub account: `jonagnar`)
 - [ ] Forgejo self-hosted (part of the `servers` repo), then canonical
       remotes + GitHub push-mirror wired up
 - [x] `projects.yml` populated (remotes pending Forgejo)
 - [x] Copier template (`templates/project`): lefthook, mise.toml, CLAUDE.md,
       sops, optional podman compose / db service / bruno — all toggleable.
-      `mise run new -- ~/projects/<name>`
+      `mise run new -- ~/Projects/<name>`
 - [x] mise decrypts sops secrets with the shared key
       (`mise settings sops.age_key_file`)
-- [x] Obsidian vault created (`~/projects/vault`, GSD structure, own git
+- [x] Obsidian vault created (`~/Projects/vault`, GSD structure, own git
       repo), opened in Obsidian with Templates enabled
 - [x] restic scaffold: `backup/` + `mise run backup*` tasks + systemd timer
 - [x] Backblaze B2: repo initialised, first snapshot taken, nightly timer
