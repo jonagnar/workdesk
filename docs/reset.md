@@ -30,11 +30,29 @@ mise run backup:install     # rewrite + re-enable the systemd units
 | `command not found` for restic/copier/lefthook | mise not activated, or tools not installed |
 | Backup hasn't run since a move | the unit's `WorkingDirectory` is stale |
 | `sops` can't decrypt | `mise settings get sops.age_key_file` points nowhere |
+| `git.jonnxor.is` refuses connections from this machine | the split-DNS pieces are missing — see below |
+
+### If it's the DNS one
+
+Machine-local, not in git, and easy to lose on a reinstall:
+
+```bash
+grep git.jonnxor.is /etc/hosts            # should pin it to 192.168.50.33
+cat /etc/systemd/resolved.conf.d/no-fallback.conf   # should set FallbackDNS=
+```
+
+Both are needed and both are explained in `repos/servers/dns.md`. Test what
+SSH actually resolves, not what `getent` says — they can disagree:
+
+```bash
+python3 -c "import socket;print(socket.getaddrinfo('git.jonnxor.is',2222)[0][4][0])"
+```
 
 ### Verify
 
 ```bash
 mise run backup:snapshots                 # both repositories respond
+mise run backup:verify                    # backup is provably restorable
 cd repos/servers && mise run lint         # units generate
 ```
 

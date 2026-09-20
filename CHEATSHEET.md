@@ -36,28 +36,31 @@ sops updatekeys <file>                       # re-encrypt after adding a recipie
 
 ```bash
 mise run backup                  # forgejo dump, then both repositories + prune
+mise run backup:verify           # prove B2 is restorable (runs monthly on its own)
 mise run backup:snapshots        # list
-mise run backup:check            # verify integrity (slow, do occasionally)
-mise run backup:restore-test     # quarterly: prove B2 is readable
+mise run backup:check            # full integrity check (slow, occasional)
+mise run backup:restore-test     # pull the age key into a scratch dir
 mise run backup:init             # create missing repositories (safe to re-run)
-mise run backup:install          # (re)install the nightly 03:00 timer
+mise run backup:install          # (re)install both timers
 
-systemctl --user list-timers restic-backup.timer
+systemctl --user list-timers restic-backup.timer restic-verify.timer
 systemctl --user start restic-backup.service       # run the nightly job now
 journalctl --user -u restic-backup.service -n 50   # what happened last night
+journalctl --user -u restic-backup.service | grep forgejo:   # did the dump work?
 ```
 
 ## Servers (`repos/servers`)
 
-Forgejo runs on this machine, loopback only: http://localhost:3000, git over
-SSH on port 2222.
+Forgejo runs on this machine at **https://git.jonnxor.is**, behind Caddy.
+Git over SSH on port 2222. `http://localhost:3000` still works locally.
 
 ```bash
 mise run lint                    # dry-run the Quadlet generator — before every deploy
-mise run deploy -- hades         # install units, restart services
+mise run deploy -- hades         # install units + Caddyfile, restart services
 
-systemctl --user status forgejo
+systemctl --user status forgejo caddy
 journalctl --user -u forgejo -n 50
+journalctl --user -u caddy -f     # watch certificate activity
 podman ps
 ```
 
@@ -65,7 +68,7 @@ Deploy a new version: change `Image=…:<tag>` in the `.container` file, commit,
 `mise run deploy -- hades`. Roll back the same way — but **not across a major
 version**, since Forgejo's database migrations don't reverse.
 
-Remote URL form: `ssh://git@localhost:2222/jonnxor/<repo>.git`
+Remote URL form: `ssh://git@git.jonnxor.is:2222/WAAAGH/<repo>.git`
 
 ## Git
 
@@ -92,5 +95,5 @@ See [docs/reset.md](docs/reset.md).
 | projects | `~/Projects/workdesk/repos/` |
 | age key (private) | `~/.config/sops/age/keys.txt` |
 | local backup repo | `~/Backups/restic` |
-| systemd units | `~/.config/systemd/user/restic-backup.{service,timer}` |
+| systemd units | `~/.config/systemd/user/restic-{backup,verify}.{service,timer}` |
 | global tool pins | `~/.config/mise/config.toml` |

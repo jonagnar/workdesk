@@ -15,7 +15,7 @@ where each one is pinned, see [stack.md](stack.md).
 | **Podman** | Container engine; rootless and daemonless. | Runs services as ordinary systemd units instead of under a root daemon. | [↗](https://docs.podman.io) |
 | **Quadlet** | A systemd *generator* that turns `.container` files into `.service` units. | Declarative containers, versioned in git, no compose process in production. | [↗](https://docs.podman.io/en/latest/markdown/podman-systemd.unit.5.html) |
 | **Forgejo** | Self-hosted git forge (a community fork of Gitea). | The canonical remote, running on this machine on loopback. Nothing depends on a hosted forge. | [↗](https://forgejo.org/docs/latest/) |
-| **Caddy** | Reverse proxy with automatic HTTPS. | *Not currently used* — nothing is exposed to the network. It's the answer if that ever changes. | [↗](https://caddyserver.com/docs/) |
+| **Caddy** | Reverse proxy with automatic HTTPS. | Fronts Forgejo at git.jonnxor.is; obtains and renews the Let's Encrypt certificate with no config beyond the domain name. | [↗](https://caddyserver.com/docs/) |
 | **Obsidian** | Markdown notes app over a plain folder. | The vault is just files — greppable, git-tracked, outlives the app. | [↗](https://obsidian.md/help/) |
 | **Bruno** | Git-friendly API client; collections are plain text files. | API contracts version alongside the code they test, not in someone's cloud workspace. | [↗](https://docs.usebruno.com/) |
 | **GSD** | Capture → clarify → organize → review → do. | How work gets into and out of the vault. | — |

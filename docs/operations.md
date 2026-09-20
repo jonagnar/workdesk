@@ -104,10 +104,26 @@ notes first.
 
 1. Write `hosts/hades/quadlet/<name>.container` (plus `.volume` files if it
    needs storage — an empty `[Volume]` section is enough).
-2. Publish it to `127.0.0.1:<port>` only. Nothing here is exposed to the
-   network; if that ever changes, put a reverse proxy in front rather than
-   publishing the service directly (see `repos/servers/README.md`).
-3. `mise run lint`, then deploy.
+2. **Publish it to `127.0.0.1:<port>` only**, and put it on the `services`
+   network so Caddy can reach it by container name. Don't publish a service's
+   own port to `0.0.0.0` — Caddy should be the only thing listening publicly,
+   so TLS and access control stay in one place.
+3. Add a block to `hosts/hades/caddy/Caddyfile` if it should be reachable:
+
+   ```
+   name.jonnxor.is {
+   	reverse_proxy <container-name>:<port>
+   }
+   ```
+
+4. Add a DNS record at ISNIC for the subdomain — a `CNAME` to the router's
+   DDNS name, matching how `git` is done. See `repos/servers/dns.md`.
+5. `mise run lint`, then deploy.
+
+Three firewalls have to agree before anything is reachable from outside: the
+MikroTik dstnat rules, `ufw` on this machine, and nothing else holding the
+port. 80 and 443 are already forwarded and allowed, so a service behind Caddy
+needs no new firewall work — only one published directly would.
 
 ## Add a new host
 
@@ -117,14 +133,25 @@ directory name and the SSH alias must match — that's the whole host registry.
 
 ## Backups
 
-The nightly timer runs at 03:00 and catches up after downtime
-(`Persistent=true`). Things worth doing by hand:
+Two timers run on their own: `restic-backup.timer` nightly at 03:00, and
+`restic-verify.timer` monthly, which proves the backup is actually restorable
+and raises a desktop notification if it isn't. Both use `Persistent=true`, so
+they catch up after downtime rather than silently skipping.
+
+You don't need to remember to test the backup — that's the verify timer's job.
+Things still worth doing by hand:
 
 ```bash
-mise run backup:snapshots     # after any big change
-mise run backup:check         # integrity — occasionally, it's slow
-mise run backup:restore-test  # quarterly, and this is the one that matters
+mise run backup              # before anything irreversible
+mise run backup:snapshots    # after any big change
+mise run backup:verify       # same check the monthly timer runs
+mise run backup:check        # full integrity — slow, occasional
 ```
+
+`mise run backup` by hand matters more than it looks: anything pushed to
+Forgejo between the nightly dump and a failure exists only in your local
+clones. The rehearsal in [recovery.md](recovery.md#5-forgejo) hit exactly
+that — 19 commits in the restored instance against 22 live.
 
 **Change what's backed up** by editing `backup/include.txt`. Because it lists
 the whole desk, new projects are covered automatically — you only edit it to
@@ -137,8 +164,9 @@ retention bug described in [architecture.md](architecture.md).
 ## Check a backup actually ran
 
 ```bash
-systemctl --user list-timers restic-backup.timer
+systemctl --user list-timers restic-backup.timer restic-verify.timer
 journalctl --user -u restic-backup.service -n 50
+journalctl --user -u restic-backup.service | grep forgejo:   # dump ok?
 ```
 
 `LAST` in the timer output is when it last fired. If it's stale by more than a

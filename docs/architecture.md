@@ -93,29 +93,34 @@ Retention is `--group-by host`. By default restic groups snapshots by
 splits retention and old snapshots survive forever. That bug was live here
 until it was caught: B2 held 7 snapshots under a "keep 3" policy.
 
-## Why Forgejo, and why it's local-only
+## Why Forgejo, and why it's public but intermittent
 
 Self-hosted and community-governed: it cannot change its terms on you. It runs
-on this laptop, bound to `127.0.0.1`.
+on this machine at **https://git.jonnxor.is**, behind Caddy, with git over SSH
+on port 2222.
 
-That sounds like a limitation and mostly isn't. Git is distributed — every
-clone is a complete copy — so a remote you can only reach from one machine
-still gives you what a remote is *for*: a canonical place to push, issues, and
-a web view. It's only unavailable when the machine is off, which is when you
-weren't working anyway.
+**Uptime follows the machine, deliberately.** That sounds like a flaw and
+mostly isn't. Git is distributed — every clone is a complete copy — so a
+remote that's offline overnight still does everything a remote is *for*: a
+canonical place to push, issues, and a web view. Worst case you push later.
+Paying for a VPS to keep a two-person forge reachable at 4am solves a problem
+neither of us has.
 
-What it buys by being local: no TLS, no reverse proxy, no DNS, no port
-forwarding, no public attack surface, and no root. A public deployment needs
-all of those and each one can break at 3am.
+It was briefly loopback-only, on the theory that not exposing it avoided TLS,
+DNS and port forwarding. That was true but bought less than it cost: the forge
+is for collaborating, and a remote only reachable from one machine can't be
+collaborated on. Being public is worth the certificate renewal it implies.
 
 There is deliberately **no GitHub mirror**. A mirror to a forge nothing depends
 on is a chore that earns nothing. If a project ever needs to be public, that's
 the moment to push it there — not before.
 
-The trade: no access from elsewhere, and if this machine dies, Forgejo's
-issues and settings die with it unless the volume backup gap is closed. The
-code itself survives, because every repository here is also a working clone
-that restic backs up.
+The trade: three separate firewalls have to agree for it to work (router
+dstnat, ufw, and nothing else holding port 80), the certificate depends on
+port 80 being reachable at renewal time, and a dynamic PPPoE address means DNS
+is a CNAME to the router's DDNS name rather than a fixed record. All of that is
+written up in `repos/servers/dns.md` and the Caddyfile's comments, because
+every one of them cost time to diagnose the first time.
 
 ## What is deliberately absent
 

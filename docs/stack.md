@@ -103,12 +103,13 @@ incident. The tag is also the deploy and rollback mechanism.
 
 | service | image | role | docs |
 | ------- | ----- | ---- | ---- |
-| Forgejo | `codeberg.org/forgejo/forgejo:16.0.5-rootless` | canonical git remote, `127.0.0.1:3000` on this machine | [forgejo.org/docs](https://forgejo.org/docs/latest/) |
+| Forgejo | `codeberg.org/forgejo/forgejo:16.0.5-rootless` | the forge at git.jonnxor.is; web on `127.0.0.1:3000`, git SSH public on 2222 | [forgejo.org/docs](https://forgejo.org/docs/latest/) |
+| Caddy | `docker.io/library/caddy:2.11.4` | reverse proxy, automatic Let's Encrypt TLS | [caddyserver.com/docs](https://caddyserver.com/docs/) |
 | Postgres | `docker.io/library/postgres:17` | *template only* — local dev when `use_database` is on | [postgresql.org/docs](https://www.postgresql.org/docs/) |
 
-No reverse proxy: Forgejo is bound to loopback, so there is no TLS to
-terminate. If it is ever exposed publicly, Caddy goes back in — see
-`repos/servers/README.md`.
+Forgejo's web port is published to loopback only — Caddy reaches it over the
+`services` container network, and `127.0.0.1:3000` stays available for local
+debugging without DNS.
 
 All fully qualified, because Podman (unlike Docker) refuses to guess a
 registry.
@@ -123,9 +124,14 @@ on start, and migrations are not reversible by changing the tag back.
 | ------- | -------- | ---------------- | ---- |
 | Backblaze B2 | offsite restic repository | local repo survives; see [recovery.md](recovery.md#4-one-backup-repository-is-gone) | [backblaze.com/docs](https://www.backblaze.com/docs/cloud-storage) |
 | Bitwarden | age private key, restic password, B2 keys | paper copy of the age key is the fallback | [bitwarden.com/help](https://bitwarden.com/help/) |
+| ISNIC | DNS for jonnxor.is | nothing resolves — see `repos/servers/dns.md` | [isnic.is](https://www.isnic.is/en) |
+| Let's Encrypt | TLS certificate for git.jonnxor.is, via Caddy | Caddy retries; needs port 80 reachable at renewal | [letsencrypt.org/docs](https://letsencrypt.org/docs/) |
+| MikroTik DDNS | `git` is a CNAME to the router's `sn.mynetname.net` name, so a PPPoE reconnect doesn't strand the domain | the CNAME goes stale; replace with an `A` record | — |
 
-That's the whole list. Git hosting is self-hosted and local; there is no
-mirror, no CI service and no TLS provider in the loop.
+Git hosting is self-hosted; there is no mirror and no CI service. Note that
+DNS resolution, certificate issuance and the dynamic address are three
+external dependencies the forge acquired when it went public — the price of
+being reachable.
 
 ## Reference pages worth bookmarking
 
