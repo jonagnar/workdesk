@@ -1,3 +1,4 @@
 /home/jonnxor/Projects/workdesk
+/home/jonnxor/Backups/forgejo
 /home/jonnxor/.config/sops/age/keys.txt
 /home/jonnxor/.config/mise/config.toml

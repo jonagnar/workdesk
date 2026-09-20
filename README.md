@@ -56,11 +56,12 @@ mise run backup:snapshots        # what's in each repository
 - [x] Backups: local disk + B2, nightly 03:00, last 3 snapshots each,
       restore-tested 2026-09-19
 - [x] `servers` repo: host `hades` (this machine), `mise run deploy -- hades`
-- [x] Forgejo 16.0.5-rootless deployed, running on `127.0.0.1:3000`
-- [ ] Complete the Forgejo install page, then disable registration
-- [ ] Push all three repos to it (`ssh://git@localhost:2222/jonnxor/<repo>.git`)
-- [ ] **Back up Forgejo's volumes** via `forgejo dump` — see the open gap
-      in [docs/recovery.md](docs/recovery.md#5-forgejo)
+- [x] Forgejo 16.0.5 installed, registration disabled
+- [x] Forgejo backed up: `forgejo dump` on every run, restore-verified
+      from B2 (2026-09-20)
+- [ ] Go public at git.jonnxor.is: sysctl, DNS, router forwarding, then
+      deploy — order matters, see `repos/servers/README.md`
+- [ ] Push all three repos to it
 
 Tools: git, age, sops, mise, podman, gh, rsync (system); restic, lefthook,
 copier (via mise). Full inventory: [docs/stack.md](docs/stack.md).

@@ -35,7 +35,7 @@ sops updatekeys <file>                       # re-encrypt after adding a recipie
 ## Backups
 
 ```bash
-mise run backup                  # both repositories + prune
+mise run backup                  # forgejo dump, then both repositories + prune
 mise run backup:snapshots        # list
 mise run backup:check            # verify integrity (slow, do occasionally)
 mise run backup:restore-test     # quarterly: prove B2 is readable

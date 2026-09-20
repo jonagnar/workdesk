@@ -17,7 +17,7 @@ instead, go to [onboarding.md](onboarding.md).
 | The age **private** key | only from Bitwarden or paper | [3](#3-the-age-key) |
 | The restic password | **no** — backups are permanently unreadable | [3](#3-the-age-key) |
 | The B2 account | yes, local repo survives | [4](#4-one-backup-repository-is-gone) |
-| Forgejo's data | partly — see the gap | [5](#5-forgejo) |
+| Forgejo's data | yes, from the nightly dump | [5](#5-forgejo) |
 | A git remote | yes, local clones are complete | [6](#6-a-remote) |
 
 ## 1. A deleted or mangled file
@@ -122,30 +122,59 @@ wasn't already being discarded.
 
 ## 5. Forgejo
 
-Forgejo runs on this machine. The units are in `repos/servers`, so recreating
-the *service* is `mise run deploy -- hades` — nothing unique lives in the
-container.
+Forgejo runs on this machine. Recreating the *service* is
+`mise run deploy -- hades` — nothing unique lives in the container. Its data
+lives in Podman volumes, which restic does not walk directly.
 
-What **is** unique is its volumes:
+Instead, **every backup run takes a `forgejo dump` first**
+(`backup/run.sh`), writing a consistent archive to
+`~/Backups/forgejo/forgejo-dump.tar`, which `include.txt` covers. The archive
+holds `app.ini`, `forgejo-db.sql` (a real SQL dump, not a copy of a live
+SQLite file) and the whole data directory including repositories.
 
+It is written to a temp file and moved into place only on success, so a
+failed dump can never overwrite the last good one. If the container isn't
+running, the dump is skipped and the rest of the backup proceeds — both cases
+are logged, so check the journal if the forge matters to a given snapshot:
+
+```bash
+journalctl --user -u restic-backup.service | grep forgejo:
 ```
-~/.local/share/containers/storage/volumes/systemd-forgejo-data/_data
-~/.local/share/containers/storage/volumes/systemd-forgejo-config/_data
+
+### Getting the archive back
+
+```bash
+cd ~/Projects/workdesk
+sops exec-env backup/restic.env.enc.yaml \
+  'restic restore latest --target /tmp/fj --include /home/jonnxor/Backups/forgejo'
+tar -tf /tmp/fj/home/jonnxor/Backups/forgejo/forgejo-dump.tar | head
 ```
 
-Those hold the repositories, the database and the config.
+That much is **verified working** — dumped, stored in B2, restored and
+inspected.
 
-> **Open gap.** They are outside `~/Projects/workdesk`, so the nightly restic
-> job does not include them. Adding the path alone is not enough either: the
-> database is SQLite, and copying it while Forgejo is running can capture a
-> torn state. The correct fix is `forgejo dump`, which writes a consistent
-> archive, run into a backed-up directory before each snapshot.
->
-> Until that exists, **every repository hosted here also exists as a working
-> clone on this machine** — and those clones *are* backed up. Losing the
-> volumes would cost issues, pull requests and settings, not code.
+### Restoring it into a running Forgejo (untested)
 
-Close this gap before Forgejo holds anything that isn't also a local clone.
+1. `mise run deploy -- hades` to create the volumes, then
+   `systemctl --user stop forgejo`.
+2. Extract the archive. `data/` maps to `/var/lib/gitea` inside the container
+   — repositories included, since the repo root sits under the data dir.
+3. Copy `data/` into
+   `~/.local/share/containers/storage/volumes/systemd-forgejo-data/_data`,
+   and `app.ini` to `data/custom/conf/app.ini`.
+4. `systemctl --user start forgejo`.
+
+`forgejo-db.sql` is the authoritative database copy if the bundled
+`gitea.db` is ever suspect — import it into a fresh SQLite file.
+
+> Worth rehearsing once for real, on a scratch volume, before you need it.
+
+### What this does not cover
+
+A running SQLite database is dumped consistently, but any push that lands
+*between* the nightly dump and a disk failure is lost. For a personal forge
+that window is acceptable; if it stops being so, run `mise run backup` by hand
+after anything important.
 
 ## 6. A remote
 
