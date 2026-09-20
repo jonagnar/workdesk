@@ -127,11 +127,12 @@ on start, and migrations are not reversible by changing the tag back.
 | ISNIC | DNS for jonnxor.is | nothing resolves — see `repos/servers/dns.md` | [isnic.is](https://www.isnic.is/en) |
 | Let's Encrypt | TLS certificate for git.jonnxor.is, via Caddy | Caddy retries; needs port 80 reachable at renewal | [letsencrypt.org/docs](https://letsencrypt.org/docs/) |
 | MikroTik DDNS | `git` is a CNAME to the router's `sn.mynetname.net` name, so a PPPoE reconnect doesn't strand the domain | the CNAME goes stale; replace with an `A` record | — |
+| GitHub | one-way push mirror of `workdesk` only, to `jonagnar/workdesk` | nothing — the mirror is a convenience, never a dependency | [docs.github.com](https://docs.github.com) |
 
-Git hosting is self-hosted; there is no mirror and no CI service. Note that
-DNS resolution, certificate issuance and the dynamic address are three
-external dependencies the forge acquired when it went public — the price of
-being reachable.
+Git hosting is self-hosted and there is no CI service. DNS resolution,
+certificate issuance and the dynamic address are three external dependencies
+the forge acquired when it went public — the price of being reachable. The
+GitHub mirror is not one of them: it consumes, it is never consumed.
 
 ## Reference pages worth bookmarking
 

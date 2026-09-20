@@ -66,6 +66,9 @@ mise run backup:snapshots        # what's in each repository
 - [x] All three repos pushed, branches renamed `master` → `main`:
       `WAAAGH/workdesk` (public), `WAAAGH/servers` and `jonnxor/vault`
       (private)
+- [x] `workdesk` push-mirrored to
+      [github.com/jonagnar/workdesk](https://github.com/jonagnar/workdesk) —
+      public repo only, one-way, nothing depends on it
 - [x] Firewall states its intent: `22`/`3389`/KDE Connect/Minecraft scoped to
       LAN + WireGuard; only `80`, `443` and `2222` are public, deliberately
 - [ ] Apex `jonnxor.is` and `www` have no records — the Vercel deployment is

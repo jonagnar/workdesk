@@ -111,9 +111,26 @@ DNS and port forwarding. That was true but bought less than it cost: the forge
 is for collaborating, and a remote only reachable from one machine can't be
 collaborated on. Being public is worth the certificate renewal it implies.
 
-There is deliberately **no GitHub mirror**. A mirror to a forge nothing depends
-on is a chore that earns nothing. If a project ever needs to be public, that's
-the moment to push it there — not before.
+**`workdesk` is mirrored to GitHub**, and nothing else is. Forgejo push-mirrors
+it to `jonagnar/workdesk` on every push, with an 8h interval as a backstop.
+
+The distinction is the point. `workdesk` is already public, so a mirror costs
+nothing and buys a public face plus a copy of last resort. `servers` and
+`vault` stay unmirrored — pushing infrastructure config and personal notes to
+someone else's platform is a different act entirely, whatever the repo's
+visibility flag says.
+
+The mirror is strictly one-way and nothing depends on it. If GitHub vanished
+the only loss would be discoverability. Two things worth knowing about it:
+
+- The token lives in Forgejo's database, so it is inside every `forgejo dump`
+  and therefore inside the backups. Encrypted at rest, but it travels with a
+  dump if one is ever shared.
+- Mirroring required turning off GitHub's *"Block command line pushes that
+  expose my email"*, because the commits are authored as `jonnxor@jonnxor.is`
+  and GitHub holds that address as private. The address was already published
+  in the public Forgejo repo; the change widens its reach rather than creating
+  the exposure.
 
 The trade: three separate firewalls have to agree for it to work (router
 dstnat, ufw, and nothing else holding port 80), the certificate depends on
