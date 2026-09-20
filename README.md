@@ -59,7 +59,6 @@ Bitwarden vault.
 ## Status
 
 - [x] Root of trust: age keypair, sops, key in Bitwarden
-- [ ] Age private key paper copy
 - [x] Copier template with toggles (`mise run new`)
 - [x] Obsidian vault (`repos/vault`, GSD structure)
 - [x] Backups: local disk + B2, nightly 03:00, last 3 snapshots each,

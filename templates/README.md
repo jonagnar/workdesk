@@ -24,7 +24,7 @@ To pull later template improvements into an existing project — explicit and
 reviewable, never automatic:
 
 ```bash
-cd ~/Projects/workdesk/workdesk/<name> && copier update --trust
+cd ~/Projects/workdesk/repos/<name> && copier update --trust
 ```
 
 `README.md` and `.env.enc.yaml` are project-owned and never touched by

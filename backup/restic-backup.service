@@ -1,5 +1,5 @@
 [Unit]
-Description=restic backup (workdesk include.txt -> Backblaze B2)
+Description=restic backup (workdesk include.txt -> local repo + Backblaze B2)
 
 [Service]
 Type=oneshot
