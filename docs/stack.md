@@ -28,15 +28,15 @@ grep -h '^Image=' repos/servers/hosts/*/quadlet/*.container
 Installed with the distro package manager, not managed by this repo. These are
 the things that must exist before anything else works.
 
-| tool | version | role |
-| ---- | ------- | ---- |
-| git | 2.55.0 | version control — the substrate |
-| age | 1.3.2 | encryption keypair; the root of trust |
-| sops | 3.13.3 | encrypts values inside YAML/JSON/env files |
-| mise | 2026.9.9 | tool versions, tasks, env loading |
-| podman | 6.1.2 | rootless containers; provides the Quadlet generator |
-| gh | 2.101.0 | GitHub CLI (account: `jonagnar`) |
-| rsync | 3.5.0 | used by `servers` deploy |
+| tool | version | role | docs |
+| ---- | ------- | ---- | ---- |
+| git | 2.55.0 | version control — the substrate | [git-scm.com/doc](https://git-scm.com/doc) |
+| age | 1.3.2 | encryption keypair; the root of trust | [github.com/FiloSottile/age](https://github.com/FiloSottile/age) |
+| sops | 3.13.3 | encrypts values inside YAML/JSON/env files | [github.com/getsops/sops](https://github.com/getsops/sops) |
+| mise | 2026.9.9 | tool versions, tasks, env loading | [mise.jdx.dev](https://mise.jdx.dev) |
+| podman | 6.1.2 | rootless containers; provides the Quadlet generator | [docs.podman.io](https://docs.podman.io) |
+| gh | 2.101.0 | GitHub CLI (account: `jonagnar`) | [cli.github.com/manual](https://cli.github.com/manual/) |
+| rsync | 3.5.0 | used by `servers` deploy | [rsync.samba.org](https://rsync.samba.org/documentation.html) |
 
 Why these are system packages rather than mise-managed: they're needed *to
 bootstrap*, including in recovery scenarios where mise may not be set up yet.
@@ -62,13 +62,14 @@ uv = "latest"
 age_key_file = "/home/jonnxor/.config/sops/age/keys.txt"
 ```
 
-| tool | version | role |
-| ---- | ------- | ---- |
-| restic | 0.19.1 | backups to both repositories |
-| lefthook | 2.1.14 | git hooks in every repo |
-| copier | 9.18.2 | scaffolding from `templates/project` |
-| node / uv / dotnet | lts / latest / 10, 8 | language runtimes used across projects |
-| gdtoolkit | latest | Godot linting/formatting (pre-existing, unrelated to the desk) |
+| tool | version | role | docs |
+| ---- | ------- | ---- | ---- |
+| restic | 0.19.1 | backups to both repositories | [restic.readthedocs.io](https://restic.readthedocs.io) |
+| lefthook | 2.1.14 | git hooks in every repo | [lefthook.dev](https://lefthook.dev) |
+| copier | 9.18.2 | scaffolding from `templates/project` | [copier.readthedocs.io](https://copier.readthedocs.io) |
+| uv | latest | Python packaging/runner | [docs.astral.sh/uv](https://docs.astral.sh/uv/) |
+| node / dotnet | lts / 10, 8 | language runtimes used across projects | — |
+| gdtoolkit | latest | Godot linting/formatting (pre-existing, unrelated to the desk) | — |
 
 `[settings.sops].age_key_file` is the line that lets mise decrypt `*.enc.*`
 files. If decryption ever fails, check it first.
@@ -83,14 +84,14 @@ is pinned exactly — see container images below.
 Set by the copier template from the `language` answer, written into the
 project's own `mise.toml`:
 
-| language | pins | fmt / lint / test |
-| -------- | ---- | ----------------- |
-| python | `python 3.13`, `uv latest` | `ruff format` / `ruff check` / `pytest` |
-| node | `node lts` | `prettier --write` / `eslint` / `npm test` |
-| rust | `rust stable` | `cargo fmt` / `cargo clippy -D warnings` / `cargo test` |
-| go | `go latest` | `gofmt -w` / `go vet` / `go test ./...` |
-| dotnet | `dotnet latest` | `dotnet format` / `dotnet build -warnaserror` / `dotnet test` |
-| none | — | `echo` placeholders, so the verbs always exist |
+| language | pins | fmt / lint / test | tool docs |
+| -------- | ---- | ----------------- | --------- |
+| python | `python 3.13`, `uv latest` | `ruff format` / `ruff check` / `pytest` | [ruff](https://docs.astral.sh/ruff/), [pytest](https://docs.pytest.org) |
+| node | `node lts` | `prettier --write` / `eslint` / `npm test` | [prettier](https://prettier.io/docs/), [eslint](https://eslint.org/docs/latest/) |
+| rust | `rust stable` | `cargo fmt` / `cargo clippy -D warnings` / `cargo test` | [cargo](https://doc.rust-lang.org/cargo/), [clippy](https://doc.rust-lang.org/clippy/) |
+| go | `go latest` | `gofmt -w` / `go vet` / `go test ./...` | [go.dev/doc](https://go.dev/doc/) |
+| dotnet | `dotnet latest` | `dotnet format` / `dotnet build -warnaserror` / `dotnet test` | [learn.microsoft.com/dotnet](https://learn.microsoft.com/dotnet/) |
+| none | — | `echo` placeholders, so the verbs always exist | — |
 
 Each project carries its own copy. Changing the template does not change
 existing projects — that's the copy-not-reference rule.
@@ -100,11 +101,11 @@ existing projects — that's the copy-not-reference rule.
 Pinned to **exact tags**, because here a surprise upgrade is a production
 incident. The tag is also the deploy and rollback mechanism.
 
-| service | image | role |
-| ------- | ----- | ---- |
-| Forgejo | `codeberg.org/forgejo/forgejo:16.0.5-rootless` | canonical git remote at git.jonnxor.is |
-| Caddy | `docker.io/library/caddy:2.11.4` | reverse proxy, automatic TLS |
-| Postgres | `docker.io/library/postgres:17` | *template only* — local dev when `use_database` is on |
+| service | image | role | docs |
+| ------- | ----- | ---- | ---- |
+| Forgejo | `codeberg.org/forgejo/forgejo:16.0.5-rootless` | canonical git remote at git.jonnxor.is | [forgejo.org/docs](https://forgejo.org/docs/latest/) |
+| Caddy | `docker.io/library/caddy:2.11.4` | reverse proxy, automatic TLS | [caddyserver.com/docs](https://caddyserver.com/docs/) |
+| Postgres | `docker.io/library/postgres:17` | *template only* — local dev when `use_database` is on | [postgresql.org/docs](https://www.postgresql.org/docs/) |
 
 All fully qualified, because Podman (unlike Docker) refuses to guess a
 registry.
@@ -115,12 +116,27 @@ on start, and migrations are not reversible by changing the tag back.
 
 ## External services
 
-| service | used for | if it disappears |
-| ------- | -------- | ---------------- |
-| Backblaze B2 | offsite restic repository | local repo survives; see [recovery.md](recovery.md#4-one-backup-repository-is-gone) |
-| Bitwarden | age private key, restic password, B2 keys | paper copy of the age key is the fallback |
-| GitHub (`jonagnar`) | future push-mirror | nothing depends on it, by design |
-| Let's Encrypt | TLS certificates via Caddy | Caddy re-requests automatically; mind rate limits |
+| service | used for | if it disappears | docs |
+| ------- | -------- | ---------------- | ---- |
+| Backblaze B2 | offsite restic repository | local repo survives; see [recovery.md](recovery.md#4-one-backup-repository-is-gone) | [backblaze.com/docs](https://www.backblaze.com/docs/cloud-storage) |
+| Bitwarden | age private key, restic password, B2 keys | paper copy of the age key is the fallback | [bitwarden.com/help](https://bitwarden.com/help/) |
+| GitHub (`jonagnar`) | future push-mirror | nothing depends on it, by design | [docs.github.com](https://docs.github.com) |
+| Let's Encrypt | TLS certificates via Caddy | Caddy re-requests automatically; mind rate limits | [letsencrypt.org/docs](https://letsencrypt.org/docs/) |
+
+## Reference pages worth bookmarking
+
+The specific pages you'll actually need when editing this system:
+
+| when you're editing | read |
+| ------------------- | ---- |
+| `.container` / `.volume` / `.network` files | [podman-systemd.unit(5)](https://docs.podman.io/en/latest/markdown/podman-systemd.unit.5.html) — the Quadlet reference |
+| `backup/restic-backup.timer` | [systemd.timer(5)](https://man7.org/linux/man-pages/man5/systemd.timer.5.html) |
+| `hosts/*/caddy/Caddyfile` | [Caddyfile concepts](https://caddyserver.com/docs/caddyfile/concepts) |
+| `templates/project/copier.yml` | [Copier configuring](https://copier.readthedocs.io/en/stable/configuring/) |
+| any `lefthook.yml` | [Lefthook configuration](https://lefthook.dev/configuration/) |
+| a commit message | [Conventional Commits](https://www.conventionalcommits.org/) |
+| `bruno/` collections | [Bruno docs](https://docs.usebruno.com/) |
+| the vault | [Obsidian Help](https://obsidian.md/help/) |
 
 ## Deliberately not in the stack
 
