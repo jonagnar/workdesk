@@ -1,6 +1,7 @@
 # Glossary
 
-If you've just landed here, this is what each moving part is.
+If you've just landed here, this is what each moving part is. For versions and
+where each one is pinned, see [stack.md](stack.md).
 
 | term | what it is | why it's here |
 | ---- | ---------- | ------------- |

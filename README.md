@@ -24,6 +24,7 @@ desk and every project still builds, lints and runs the same.
 | -------- | ---- |
 | new to this, or setting up a machine | [docs/onboarding.md](docs/onboarding.md) |
 | unsure what a word means | [docs/glossary.md](docs/glossary.md) |
+| asking what's installed and pinned where | [docs/stack.md](docs/stack.md) |
 | looking for a command | [CHEATSHEET.md](CHEATSHEET.md) |
 | doing something you do rarely | [docs/operations.md](docs/operations.md) |
 | wondering *why* it's built this way | [docs/architecture.md](docs/architecture.md) |
@@ -63,4 +64,4 @@ mise run backup:snapshots        # what's in each repository
       in [docs/recovery.md](docs/recovery.md#5-the-server)
 
 Tools: git, age, sops, mise, podman, gh, rsync (system); restic, lefthook,
-copier (via mise).
+copier (via mise). Full inventory: [docs/stack.md](docs/stack.md).
