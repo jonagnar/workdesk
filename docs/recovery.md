@@ -17,7 +17,7 @@ instead, go to [onboarding.md](onboarding.md).
 | The age **private** key | only from Bitwarden or paper | [3](#3-the-age-key) |
 | The restic password | **no** — backups are permanently unreadable | [3](#3-the-age-key) |
 | The B2 account | yes, local repo survives | [4](#4-one-backup-repository-is-gone) |
-| The home box | yes | [5](#5-the-server) |
+| Forgejo's data | partly — see the gap | [5](#5-forgejo) |
 | A git remote | yes, local clones are complete | [6](#6-a-remote) |
 
 ## 1. A deleted or mangled file
@@ -120,26 +120,32 @@ mise run backup
 Only the last 3 snapshots are ever kept, so nothing historical is lost that
 wasn't already being discarded.
 
-## 5. The server
+## 5. Forgejo
 
-The box holds no unique source — units and config are in `repos/servers`, so
-rebuilding is: reinstall the OS, redo the bootstrap in
-`repos/servers/README.md`, generate a **new** age key for it, add that public
-key as a recipient (see [operations.md](operations.md)), then
-`mise run deploy -- home`.
+Forgejo runs on this machine. The units are in `repos/servers`, so recreating
+the *service* is `mise run deploy -- hades` — nothing unique lives in the
+container.
 
-What is *not* in git: the container **volumes** — Forgejo's database and
-repositories, Caddy's certificates. Those are not currently backed up. If the
-box dies today, hosted repositories are lost unless they also exist as clones
-on your laptop.
+What **is** unique is its volumes:
 
-> **Open gap.** Before Forgejo holds anything you care about, add a backup of
-> its volume — a `pg_dump`/`tar` on the box pushed to the same B2 repository,
-> or restic running on the box itself. This is the one known hole in the
-> system.
+```
+~/.local/share/containers/storage/volumes/systemd-forgejo-data/_data
+~/.local/share/containers/storage/volumes/systemd-forgejo-config/_data
+```
 
-Caddy's certificate volume is not worth backing up — Let's Encrypt will just
-issue again — but be aware of their rate limits if you rebuild repeatedly.
+Those hold the repositories, the database and the config.
+
+> **Open gap.** They are outside `~/Projects/workdesk`, so the nightly restic
+> job does not include them. Adding the path alone is not enough either: the
+> database is SQLite, and copying it while Forgejo is running can capture a
+> torn state. The correct fix is `forgejo dump`, which writes a consistent
+> archive, run into a backed-up directory before each snapshot.
+>
+> Until that exists, **every repository hosted here also exists as a working
+> clone on this machine** — and those clones *are* backed up. Losing the
+> volumes would cost issues, pull requests and settings, not code.
+
+Close this gap before Forgejo holds anything that isn't also a local clone.
 
 ## 6. A remote
 

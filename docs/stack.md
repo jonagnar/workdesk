@@ -35,7 +35,7 @@ the things that must exist before anything else works.
 | sops | 3.13.3 | encrypts values inside YAML/JSON/env files | [github.com/getsops/sops](https://github.com/getsops/sops) |
 | mise | 2026.9.9 | tool versions, tasks, env loading | [mise.jdx.dev](https://mise.jdx.dev) |
 | podman | 6.1.2 | rootless containers; provides the Quadlet generator | [docs.podman.io](https://docs.podman.io) |
-| gh | 2.101.0 | GitHub CLI (account: `jonagnar`) | [cli.github.com/manual](https://cli.github.com/manual/) |
+| gh | 2.101.0 | GitHub CLI — installed, not currently used by anything here | [cli.github.com/manual](https://cli.github.com/manual/) |
 | rsync | 3.5.0 | used by `servers` deploy | [rsync.samba.org](https://rsync.samba.org/documentation.html) |
 
 Why these are system packages rather than mise-managed: they're needed *to
@@ -103,14 +103,17 @@ incident. The tag is also the deploy and rollback mechanism.
 
 | service | image | role | docs |
 | ------- | ----- | ---- | ---- |
-| Forgejo | `codeberg.org/forgejo/forgejo:16.0.5-rootless` | canonical git remote at git.jonnxor.is | [forgejo.org/docs](https://forgejo.org/docs/latest/) |
-| Caddy | `docker.io/library/caddy:2.11.4` | reverse proxy, automatic TLS | [caddyserver.com/docs](https://caddyserver.com/docs/) |
+| Forgejo | `codeberg.org/forgejo/forgejo:16.0.5-rootless` | canonical git remote, `127.0.0.1:3000` on this machine | [forgejo.org/docs](https://forgejo.org/docs/latest/) |
 | Postgres | `docker.io/library/postgres:17` | *template only* — local dev when `use_database` is on | [postgresql.org/docs](https://www.postgresql.org/docs/) |
+
+No reverse proxy: Forgejo is bound to loopback, so there is no TLS to
+terminate. If it is ever exposed publicly, Caddy goes back in — see
+`repos/servers/README.md`.
 
 All fully qualified, because Podman (unlike Docker) refuses to guess a
 registry.
 
-Upgrading: change the tag, commit, `mise run deploy -- home`. Read the
+Upgrading: change the tag, commit, `mise run deploy -- hades`. Read the
 project's release notes first — Forgejo in particular runs database migrations
 on start, and migrations are not reversible by changing the tag back.
 
@@ -120,8 +123,9 @@ on start, and migrations are not reversible by changing the tag back.
 | ------- | -------- | ---------------- | ---- |
 | Backblaze B2 | offsite restic repository | local repo survives; see [recovery.md](recovery.md#4-one-backup-repository-is-gone) | [backblaze.com/docs](https://www.backblaze.com/docs/cloud-storage) |
 | Bitwarden | age private key, restic password, B2 keys | paper copy of the age key is the fallback | [bitwarden.com/help](https://bitwarden.com/help/) |
-| GitHub (`jonagnar`) | future push-mirror | nothing depends on it, by design | [docs.github.com](https://docs.github.com) |
-| Let's Encrypt | TLS certificates via Caddy | Caddy re-requests automatically; mind rate limits | [letsencrypt.org/docs](https://letsencrypt.org/docs/) |
+
+That's the whole list. Git hosting is self-hosted and local; there is no
+mirror, no CI service and no TLS provider in the loop.
 
 ## Reference pages worth bookmarking
 
@@ -131,7 +135,7 @@ The specific pages you'll actually need when editing this system:
 | ------------------- | ---- |
 | `.container` / `.volume` / `.network` files | [podman-systemd.unit(5)](https://docs.podman.io/en/latest/markdown/podman-systemd.unit.5.html) — the Quadlet reference |
 | `backup/restic-backup.timer` | [systemd.timer(5)](https://man7.org/linux/man-pages/man5/systemd.timer.5.html) |
-| `hosts/*/caddy/Caddyfile` | [Caddyfile concepts](https://caddyserver.com/docs/caddyfile/concepts) |
+| a reverse proxy, if you ever expose a service | [Caddyfile concepts](https://caddyserver.com/docs/caddyfile/concepts) |
 | `templates/project/copier.yml` | [Copier configuring](https://copier.readthedocs.io/en/stable/configuring/) |
 | any `lefthook.yml` | [Lefthook configuration](https://lefthook.dev/configuration/) |
 | a commit message | [Conventional Commits](https://www.conventionalcommits.org/) |

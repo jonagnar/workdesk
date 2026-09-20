@@ -55,13 +55,12 @@ mise run backup:snapshots        # what's in each repository
 - [x] Obsidian vault (`repos/vault`, GSD structure)
 - [x] Backups: local disk + B2, nightly 03:00, last 3 snapshots each,
       restore-tested 2026-09-19
-- [x] `servers` repo: host `home` with Forgejo 16.0.5-rootless + Caddy
-      Quadlet units, `mise run lint`, `mise run deploy -- home`
-- [ ] Box bootstrapped (podman, linger, sysctl, server age key as second
-      sops recipient), router + DNS for git.jonnxor.is, first deploy
-- [ ] Forgejo up → push remotes + GitHub mirrors
-- [ ] **Back up Forgejo's volumes** once it holds anything — see the open gap
-      in [docs/recovery.md](docs/recovery.md#5-the-server)
+- [x] `servers` repo: host `hades` (this machine), `mise run deploy -- hades`
+- [x] Forgejo 16.0.5-rootless deployed, running on `127.0.0.1:3000`
+- [ ] Complete the Forgejo install page, then disable registration
+- [ ] Push all three repos to it (`ssh://git@localhost:2222/jonnxor/<repo>.git`)
+- [ ] **Back up Forgejo's volumes** via `forgejo dump` — see the open gap
+      in [docs/recovery.md](docs/recovery.md#5-forgejo)
 
 Tools: git, age, sops, mise, podman, gh, rsync (system); restic, lefthook,
 copier (via mise). Full inventory: [docs/stack.md](docs/stack.md).

@@ -49,17 +49,23 @@ journalctl --user -u restic-backup.service -n 50   # what happened last night
 
 ## Servers (`repos/servers`)
 
-```bash
-mise run lint                    # dry-run the Quadlet generator — do this before deploying
-mise run deploy -- home          # rsync units + Caddyfile to the box, restart
+Forgejo runs on this machine, loopback only: http://localhost:3000, git over
+SSH on port 2222.
 
-ssh home systemctl --user status forgejo caddy
-ssh home journalctl --user -u forgejo -n 50
-ssh home podman ps
+```bash
+mise run lint                    # dry-run the Quadlet generator — before every deploy
+mise run deploy -- hades         # install units, restart services
+
+systemctl --user status forgejo
+journalctl --user -u forgejo -n 50
+podman ps
 ```
 
 Deploy a new version: change `Image=…:<tag>` in the `.container` file, commit,
-`mise run deploy -- home`. Roll back: change the tag back, deploy again.
+`mise run deploy -- hades`. Roll back the same way — but **not across a major
+version**, since Forgejo's database migrations don't reverse.
+
+Remote URL form: `ssh://git@localhost:2222/jonnxor/<repo>.git`
 
 ## Git
 

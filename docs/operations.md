@@ -80,42 +80,38 @@ been exposed.
 ```bash
 cd repos/servers
 mise run lint                 # generator dry-run — always do this first
-mise run deploy -- home
+mise run deploy -- hades
 ```
 
-`deploy` rsyncs `hosts/home/quadlet/` to `~/.config/containers/systemd/` on
-the box (with `--delete`, so removing a unit here removes it there), copies the
-Caddyfile, then `daemon-reload` + `restart`.
+`deploy` rsyncs `hosts/hades/quadlet/` into `~/.config/containers/systemd/`
+(with `--delete`, so removing a unit here removes it there), then
+`daemon-reload` + `restart`. Because the host directory name matches this
+machine's hostname, it installs locally; any other name is treated as an SSH
+alias and deployed over the network.
 
 ## Release a new version of a service
 
 1. Change `Image=…:<new tag>` in the `.container` file.
 2. Commit (`feat:` or `chore:`).
-3. `mise run deploy -- home`.
+3. `mise run deploy -- hades`.
 
-Rollback is the same three steps with the old tag. Volumes are untouched by
-redeploys, so data survives.
+Rollback is the same three steps with the old tag, and volumes survive
+redeploys. **Exception:** Forgejo migrates its database on start across major
+versions and migrations do not reverse — take a dump and read the release
+notes first.
 
 ## Add a service to a host
 
-1. Write `hosts/home/quadlet/<name>.container` (and `.volume` files if it needs
-   storage — an empty `[Volume]` section is enough).
-2. Add a block to `hosts/home/caddy/Caddyfile` if it should be reachable:
-
-```
-name.jonnxor.is {
-	reverse_proxy <container-name>:<port>
-}
-```
-
+1. Write `hosts/hades/quadlet/<name>.container` (plus `.volume` files if it
+   needs storage — an empty `[Volume]` section is enough).
+2. Publish it to `127.0.0.1:<port>` only. Nothing here is exposed to the
+   network; if that ever changes, put a reverse proxy in front rather than
+   publishing the service directly (see `repos/servers/README.md`).
 3. `mise run lint`, then deploy.
-
-Do **not** publish the service's own HTTP port. Leave it on the internal
-network and let Caddy be the only way in.
 
 ## Add a new host
 
-Copy `hosts/home/` to `hosts/<name>/`, adjust the units, add a matching `Host
+Copy `hosts/hades/` to `hosts/<name>/`, adjust the units, add a matching `Host
 <name>` block to `~/.ssh/config`, and `mise run deploy -- <name>`. The
 directory name and the SSH alias must match — that's the whole host registry.
 

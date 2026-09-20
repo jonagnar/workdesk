@@ -93,14 +93,29 @@ Retention is `--group-by host`. By default restic groups snapshots by
 splits retention and old snapshots survive forever. That bug was live here
 until it was caught: B2 held 7 snapshots under a "keep 3" policy.
 
-## Why Forgejo is canonical and GitHub is a mirror
+## Why Forgejo, and why it's local-only
 
-Self-hosted, community-governed, and it cannot change its terms on you. GitHub
-stays useful — visibility, collaboration, CI minutes — but nothing depends on
-it. If GitHub vanished, the only loss is convenience.
+Self-hosted and community-governed: it cannot change its terms on you. It runs
+on this laptop, bound to `127.0.0.1`.
 
-The trade is real: a box at home means you own the uptime, the DNS and the
-backups of it.
+That sounds like a limitation and mostly isn't. Git is distributed — every
+clone is a complete copy — so a remote you can only reach from one machine
+still gives you what a remote is *for*: a canonical place to push, issues, and
+a web view. It's only unavailable when the machine is off, which is when you
+weren't working anyway.
+
+What it buys by being local: no TLS, no reverse proxy, no DNS, no port
+forwarding, no public attack surface, and no root. A public deployment needs
+all of those and each one can break at 3am.
+
+There is deliberately **no GitHub mirror**. A mirror to a forge nothing depends
+on is a chore that earns nothing. If a project ever needs to be public, that's
+the moment to push it there — not before.
+
+The trade: no access from elsewhere, and if this machine dies, Forgejo's
+issues and settings die with it unless the volume backup gap is closed. The
+code itself survives, because every repository here is also a working clone
+that restic backs up.
 
 ## What is deliberately absent
 

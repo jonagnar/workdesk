@@ -113,19 +113,21 @@ Open Obsidian → *Open folder as vault* → `~/Projects/workdesk/repos/vault`.
 Settings travel with the folder; the Templates plugin is already configured to
 point at `templates/`.
 
-## 8. If you administer the servers
+## 8. Forgejo
 
-Add the box to `~/.ssh/config` — the host alias must match the directory name
-under `repos/servers/hosts/`:
+Git hosting runs on this machine, bound to loopback. To bring it up:
 
+```bash
+cd ~/Projects/workdesk/repos/servers
+mise run lint                 # units generate?
+mise run deploy -- hades      # install and start
 ```
-Host home
-    HostName <LAN IP or DDNS name>
-    User <box user>
-```
 
-Then `cd repos/servers && mise run lint` should print the generated unit names.
-Deploying is [operations.md](operations.md).
+Then http://localhost:3000. First-run steps (admin account, disabling
+registration, adding your SSH key) are in `repos/servers/README.md`.
+
+If the host directory is named after a *different* machine, that name is used
+as an SSH alias and needs a matching `Host` block in `~/.ssh/config`.
 
 ## Done when
 
