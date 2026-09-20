@@ -62,7 +62,12 @@ mise run backup:snapshots        # what's in each repository
 - [x] Public at **https://git.jonnxor.is** — DNS at ISNIC (CNAME to the
       router's DDNS name), MikroTik dstnat, ufw, Caddy with a real Let's
       Encrypt certificate. Git over SSH on port 2222.
-- [ ] Add an SSH key to Forgejo, then push all three repos
+- [x] All three repos pushed, branches renamed `master` → `main`:
+      `WAAAGH/workdesk` (public), `WAAAGH/servers` and `jonnxor/vault`
+      (private)
+- [ ] Apex `jonnxor.is` still points at Vercel — move the site here, then
+      retire the Vercel project (not before: resolvers holding the old
+      delegation still need it)
 
 Tools: git, age, sops, mise, podman, gh, rsync (system); restic, lefthook,
 copier (via mise). Full inventory: [docs/stack.md](docs/stack.md).

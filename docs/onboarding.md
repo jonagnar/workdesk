@@ -56,7 +56,7 @@ age-keygen -y ~/.config/sops/age/keys.txt
 
 ```bash
 mkdir -p ~/Projects && cd ~/Projects
-git clone <desk remote> workdesk       # or restore from backup — see recovery.md
+git clone ssh://git@git.jonnxor.is:2222/WAAAGH/workdesk.git
 cd workdesk
 mise trust
 mise install                           # restic, lefthook, copier
@@ -94,9 +94,14 @@ Each project is its own repo. Clone whichever you need into `repos/`:
 
 ```bash
 cd ~/Projects/workdesk/repos
-git clone <vault remote> vault
-git clone <servers remote> servers
+git clone ssh://git@git.jonnxor.is:2222/jonnxor/vault.git
+git clone ssh://git@git.jonnxor.is:2222/WAAAGH/servers.git
 ```
+
+Both are private, so this needs your SSH key registered in Forgejo — and
+Forgejo has to be *running*, which is a chicken-and-egg problem if this
+machine is the one you're rebuilding. In that case restore from backup
+instead: [recovery.md](recovery.md).
 
 Per project, once cloned:
 
