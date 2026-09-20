@@ -59,9 +59,10 @@ mise run backup:snapshots        # what's in each repository
 - [x] Forgejo 16.0.5 installed, registration disabled
 - [x] Forgejo backed up: `forgejo dump` on every run, restore-verified
       from B2 (2026-09-20)
-- [ ] Go public at git.jonnxor.is: sysctl, DNS, router forwarding, then
-      deploy — order matters, see `repos/servers/README.md`
-- [ ] Push all three repos to it
+- [x] Public at **https://git.jonnxor.is** — DNS at ISNIC (CNAME to the
+      router's DDNS name), MikroTik dstnat, ufw, Caddy with a real Let's
+      Encrypt certificate. Git over SSH on port 2222.
+- [ ] Add an SSH key to Forgejo, then push all three repos
 
 Tools: git, age, sops, mise, podman, gh, rsync (system); restic, lefthook,
 copier (via mise). Full inventory: [docs/stack.md](docs/stack.md).
