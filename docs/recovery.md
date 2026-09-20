@@ -153,28 +153,73 @@ tar -tf /tmp/fj/home/jonnxor/Backups/forgejo/forgejo-dump.tar | head
 That much is **verified working** — dumped, stored in B2, restored and
 inspected.
 
-### Restoring it into a running Forgejo (untested)
+### Restoring it into a running Forgejo
 
-1. `mise run deploy -- hades` to create the volumes, then
-   `systemctl --user stop forgejo`.
-2. Extract the archive. `data/` maps to `/var/lib/gitea` inside the container
-   — repositories included, since the repo root sits under the data dir.
-3. Copy `data/` into
-   `~/.local/share/containers/storage/volumes/systemd-forgejo-data/_data`,
-   and `app.ini` to `data/custom/conf/app.ini`.
-4. `systemctl --user start forgejo`.
+**Rehearsed 2026-09-20** against a throwaway instance — org, user account and
+full git history all came back, and the restored repositories cloned cleanly.
 
-`forgejo-db.sql` is the authoritative database copy if the bundled
-`gitea.db` is ever suspect — import it into a fresh SQLite file.
+The archive has four top-level entries:
 
-> Worth rehearsing once for real, on a scratch volume, before you need it.
+| in the archive | goes to | holds |
+| -------------- | ------- | ----- |
+| `data/` | `/var/lib/gitea/` | database, config, avatars, everything else |
+| `repos/` | `/var/lib/gitea/git/repositories/` | the bare repositories |
+| `app.ini` | already inside `data/custom/conf/` | config |
+| `forgejo-db.sql` | — | consistent SQL dump, the fallback if `gitea.db` is suspect |
+
+Ownership matters: the rootless image runs as **uid/gid 1000 (`git`)**, so do
+the extraction *inside* a container rather than on the host, where the
+rootless subuid mapping would give you the wrong owner.
+
+```bash
+# 1. get the archive back (adjust --target if restoring elsewhere)
+cd ~/Projects/workdesk
+sops exec-env backup/restic.env.enc.yaml \
+  'restic restore latest --target /tmp/fj --include /home/jonnxor/Backups/forgejo'
+
+# 2. stop the service so nothing writes while you replace its data
+systemctl --user stop forgejo
+
+# 3. populate the volume, as root inside a container, then fix ownership
+podman run --rm -v systemd-forgejo-data:/target \
+  -v /tmp/fj/home/jonnxor/Backups/forgejo:/dump:ro docker.io/library/alpine:3 sh -c '
+    mkdir -p /tmp/x && tar xf /dump/forgejo-dump.tar -C /tmp/x
+    cp -a /tmp/x/data/. /target/
+    mkdir -p /target/git/repositories && cp -a /tmp/x/repos/. /target/git/repositories/
+    chown -R 1000:1000 /target'
+
+# 4. back up
+systemctl --user start forgejo
+```
+
+To rehearse instead of restore for real, swap `systemd-forgejo-data` for a
+scratch volume and run it on another port, leaving the live instance alone:
+
+```bash
+podman volume create fj-restore-test
+# ...same extraction, targeting fj-restore-test...
+podman run -d --name forgejo-restore-test -v fj-restore-test:/var/lib/gitea \
+  -p 127.0.0.1:3001:3000 -e FORGEJO__server__ROOT_URL=http://localhost:3001/ \
+  -e FORGEJO__server__START_SSH_SERVER=false \
+  codeberg.org/forgejo/forgejo:16.0.5-rootless
+```
+
+Then clone something from `http://localhost:3001/` and compare its history
+against your local copy. Tear down with `podman rm -f forgejo-restore-test`
+and `podman volume rm fj-restore-test`.
 
 ### What this does not cover
 
 A running SQLite database is dumped consistently, but any push that lands
-*between* the nightly dump and a disk failure is lost. For a personal forge
-that window is acceptable; if it stops being so, run `mise run backup` by hand
-after anything important.
+*between* the nightly dump and a disk failure is lost. The rehearsal made
+this concrete: the restored instance had **19 commits where the live one had
+22**, because three had been pushed since the last dump. Those three survived
+only because they also existed as local clones — which is the whole reason
+that safety net is worth keeping.
+
+For a personal forge that window is acceptable. If it stops being so, run
+`mise run backup` by hand after anything important, or move the timer to
+several times a day.
 
 ## 6. A remote
 
