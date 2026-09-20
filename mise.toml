@@ -1,7 +1,6 @@
 [env]
-# restic + B2 credentials (sops-encrypted); see backup/README.md
-_.file = { path = "backup/restic.env.enc.yaml", redact = true }
-# Local repo — same password as the cloud one, different location.
+# Not a secret, so it can live here in the clear. The B2 credentials
+# deliberately do NOT live in [env] — see backup/run.sh.
 RESTIC_LOCAL = "{{env.HOME}}/Backups/restic"
 
 [tasks.new]
@@ -10,33 +9,23 @@ run = "copier copy --trust {{config_root}}/templates/project"
 
 [tasks.backup]
 description = "Back up to the local repo and to B2, keeping the last 3 snapshots in each"
-run = """
-restic -r "$RESTIC_LOCAL" backup --files-from backup/include.txt --exclude-file backup/exclude.txt
-restic -r "$RESTIC_LOCAL" forget --keep-last 3 --group-by host --prune
-restic backup --files-from backup/include.txt --exclude-file backup/exclude.txt
-restic forget --keep-last 3 --group-by host --prune
-"""
+run = "sops exec-env backup/restic.env.enc.yaml 'backup/run.sh backup'"
 
 [tasks."backup:init"]
 description = "Create either repository if it doesn't exist yet (safe to re-run)"
-run = """
-restic -r "$RESTIC_LOCAL" cat config >/dev/null 2>&1 || restic -r "$RESTIC_LOCAL" init
-restic cat config >/dev/null 2>&1 || restic init
-"""
+run = "sops exec-env backup/restic.env.enc.yaml 'backup/run.sh init'"
 
 [tasks."backup:snapshots"]
 description = "List snapshots in both repositories"
-run = """
-echo "== local"; restic -r "$RESTIC_LOCAL" snapshots
-echo "== b2";    restic snapshots
-"""
+run = "sops exec-env backup/restic.env.enc.yaml 'backup/run.sh snapshots'"
 
 [tasks."backup:check"]
 description = "Verify integrity of both repositories"
-run = """
-echo "== local"; restic -r "$RESTIC_LOCAL" check
-echo "== b2";    restic check
-"""
+run = "sops exec-env backup/restic.env.enc.yaml 'backup/run.sh check'"
+
+[tasks."backup:restore-test"]
+description = "Restore the age key from the latest B2 snapshot into a scratch dir"
+run = "sops exec-env backup/restic.env.enc.yaml 'backup/run.sh restore-test'"
 
 [tasks."backup:install"]
 description = "Install and enable the nightly systemd user timer"
@@ -46,12 +35,4 @@ cp backup/restic-backup.service backup/restic-backup.timer ~/.config/systemd/use
 systemctl --user daemon-reload
 systemctl --user enable --now restic-backup.timer
 systemctl --user list-timers restic-backup.timer
-"""
-
-[tasks."backup:restore-test"]
-description = "Restore the age key from the latest B2 snapshot into a scratch dir"
-run = """
-dir=$(mktemp -d)
-restic restore latest --target "$dir" --include /home/jonnxor/.config/sops/age/keys.txt
-echo "restored into $dir:"; find "$dir" -type f
 """
