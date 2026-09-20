@@ -9,7 +9,7 @@ references this directory afterwards.
 Scaffold a new standalone project repo:
 
 ```bash
-mise run new -- ~/Projects/workdesk/<name>
+mise run new -- repos/<name>
 ```
 
 (wraps `copier copy --trust templates/project <dest>`; `--trust` lets the

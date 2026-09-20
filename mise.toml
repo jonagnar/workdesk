@@ -1,37 +1,42 @@
 [env]
 # restic + B2 credentials (sops-encrypted); see backup/README.md
 _.file = { path = "backup/restic.env.enc.yaml", redact = true }
+# Local repo — same password as the cloud one, different location.
+RESTIC_LOCAL = "{{env.HOME}}/Backups/restic"
 
 [tasks.new]
-description = "Scaffold a standalone project onto the desk: mise run new -- ~/Projects/workdesk/<name>"
+description = "Scaffold a standalone project: mise run new -- repos/<name>"
 run = "copier copy --trust {{config_root}}/templates/project"
 
-[tasks."desk:status"]
-description = "What's on the desk, its state, and any drift from projects.yml"
-run = "scripts/desk-status.sh"
-
-[tasks."desk:clone"]
-description = "Clone every manifest project that isn't here yet (fresh machine)"
-run = "scripts/desk-clone.sh"
-
 [tasks.backup]
-description = "Snapshot backup/include.txt to the restic repo, then apply retention"
+description = "Back up to the local repo and to B2, keeping the last 3 snapshots in each"
 run = """
-restic backup --files-from backup/include.txt --exclude-file backup/exclude.txt --tag scheduled
-restic forget --keep-daily 7 --keep-weekly 4 --keep-monthly 6 --prune
+restic -r "$RESTIC_LOCAL" backup --files-from backup/include.txt --exclude-file backup/exclude.txt
+restic -r "$RESTIC_LOCAL" forget --keep-last 3 --group-by host --prune
+restic backup --files-from backup/include.txt --exclude-file backup/exclude.txt
+restic forget --keep-last 3 --group-by host --prune
 """
 
 [tasks."backup:init"]
-description = "Create the restic repository (once)"
-run = "restic init"
+description = "Create either repository if it doesn't exist yet (safe to re-run)"
+run = """
+restic -r "$RESTIC_LOCAL" cat config >/dev/null 2>&1 || restic -r "$RESTIC_LOCAL" init
+restic cat config >/dev/null 2>&1 || restic init
+"""
 
 [tasks."backup:snapshots"]
-description = "List snapshots"
-run = "restic snapshots"
+description = "List snapshots in both repositories"
+run = """
+echo "== local"; restic -r "$RESTIC_LOCAL" snapshots
+echo "== b2";    restic snapshots
+"""
 
 [tasks."backup:check"]
-description = "Verify repository integrity"
-run = "restic check"
+description = "Verify integrity of both repositories"
+run = """
+echo "== local"; restic -r "$RESTIC_LOCAL" check
+echo "== b2";    restic check
+"""
 
 [tasks."backup:install"]
 description = "Install and enable the nightly systemd user timer"
@@ -44,7 +49,7 @@ systemctl --user list-timers restic-backup.timer
 """
 
 [tasks."backup:restore-test"]
-description = "Restore the age key from the latest snapshot into a scratch dir"
+description = "Restore the age key from the latest B2 snapshot into a scratch dir"
 run = """
 dir=$(mktemp -d)
 restic restore latest --target "$dir" --include /home/jonnxor/.config/sops/age/keys.txt

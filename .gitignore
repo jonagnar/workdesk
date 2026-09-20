@@ -1,10 +1,5 @@
-# Projects on the desk are their own standalone repos — the desk never tracks
-# their contents. Deny every top-level directory, then allow back the desk's
-# own. A new project can therefore never be committed into here by accident.
-/*/
-!/backup/
-!/scripts/
-!/templates/
+# Everything you clone or scaffold lives in repos/ and is never tracked here.
+/repos/
 
 # Never commit unencrypted secrets (encrypted *.enc.* files are fine)
 *.key
