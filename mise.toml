@@ -5,7 +5,10 @@ RESTIC_LOCAL = "{{env.HOME}}/Backups/restic"
 
 [tasks.new]
 description = "Scaffold a standalone project: mise run new -- repos/<name>"
-run = "copier copy --trust {{config_root}}/templates/project"
+# Deliberately the git URL, not a local path: copier records it in the new
+# project's .copier-answers.yml, and an absolute path there is meaningless on
+# anyone else's machine — `copier update` would only ever work here.
+run = "copier copy --trust ssh://git@git.jonnxor.is:2222/WAAAGH/workdesk.git"
 
 [tasks.backup]
 description = "Back up to the local repo and to B2, keeping the last 3 snapshots in each"
