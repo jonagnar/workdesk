@@ -42,7 +42,7 @@ dump_forgejo() {
 
 keep() { restic "$@" forget --keep-last 3 --group-by host --prune; }
 
-case "${1:?usage: run.sh backup|init|snapshots|check|restore-test}" in
+case "${1:?usage: run.sh backup|init|snapshots|check|restore-test|verify}" in
 backup)
 	dump_forgejo
 	restic -r "$RESTIC_LOCAL" backup --files-from backup/include.txt --exclude-file backup/exclude.txt
@@ -67,6 +67,58 @@ restore-test)
 	restic restore latest --target "$dir" --include "$HOME/.config/sops/age/keys.txt"
 	echo "restored into $dir:"
 	find "$dir" -type f
+	;;
+verify)
+	# Run unattended by restic-verify.timer. Exits non-zero on any failure,
+	# which systemd turns into a desktop notification — a backup nobody has
+	# restored from is a theory, and one nobody has restored from *lately*
+	# is a theory about the past.
+	dir=$(mktemp -d)
+	trap 'rm -rf "$dir"' EXIT
+	fail=0
+
+	# 1. B2 is reachable, credentials still valid, repository intact enough
+	#    to list. Catches revoked keys and deleted buckets.
+	if ! restic snapshots --latest 1 >/dev/null 2>&1; then
+		echo "VERIFY FAIL: cannot list snapshots in B2" >&2
+		exit 1
+	fi
+
+	# 2. The age key actually restores, and matches the live one. Catches a
+	#    repository that lists fine but cannot reconstruct its data.
+	if restic restore latest --target "$dir" --include "$HOME/.config/sops/age/keys.txt" >/dev/null 2>&1 &&
+		cmp -s "$dir$HOME/.config/sops/age/keys.txt" "$HOME/.config/sops/age/keys.txt"; then
+		echo "ok: age key restored from B2 and matches"
+	else
+		echo "VERIFY FAIL: age key did not restore, or differs from the live key" >&2
+		fail=1
+	fi
+
+	# 3. The Forgejo dump in the latest snapshot is a readable archive that
+	#    still contains a database. Catches dumps that started failing after
+	#    an upgrade and have been silently writing garbage.
+	if restic restore latest --target "$dir" --include "$HOME/Backups/forgejo" >/dev/null 2>&1 &&
+		tar -tf "$dir$HOME/Backups/forgejo/forgejo-dump.tar" 2>/dev/null | grep -q '^forgejo-db.sql$'; then
+		echo "ok: forgejo dump readable and contains forgejo-db.sql"
+	else
+		echo "VERIFY FAIL: forgejo dump missing, unreadable, or has no database" >&2
+		fail=1
+	fi
+
+	# 4. The most recent snapshot is recent. Catches the timer silently not
+	#    firing, which no amount of repository integrity would reveal.
+	last=$(restic snapshots --latest 1 --json 2>/dev/null | grep -oE '"time":"[^"]+"' | head -1 | cut -d'"' -f4)
+	if [ -n "$last" ]; then
+		age_days=$(( ($(date +%s) - $(date -d "$last" +%s)) / 86400 ))
+		if [ "$age_days" -gt 3 ]; then
+			echo "VERIFY FAIL: newest B2 snapshot is ${age_days} days old" >&2
+			fail=1
+		else
+			echo "ok: newest B2 snapshot is ${age_days} day(s) old"
+		fi
+	fi
+
+	exit "$fail"
 	;;
 *)
 	echo "unknown command: $1" >&2

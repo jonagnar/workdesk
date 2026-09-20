@@ -234,8 +234,10 @@ Nothing is lost as long as one clone exists anywhere.
 
 ## Prevention
 
-- `mise run backup:restore-test` quarterly. It is the only thing that proves
-  the chain works end to end.
+- **Verification is automatic.** `restic-verify.timer` runs monthly, checks
+  that B2 is reachable, that the age key and Forgejo dump actually restore,
+  and that the newest snapshot is recent — then notifies only if something
+  failed. See `backup/README.md`.
 - Keep the age key in three places: Bitwarden, the backup, paper.
 - Keep the restic password in Bitwarden. It is the one secret with **no**
   recovery path.

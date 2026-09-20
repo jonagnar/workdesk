@@ -1,0 +1,8 @@
+[Unit]
+Description=Tell someone the backup verification failed
+
+[Service]
+Type=oneshot
+ExecStart=/usr/bin/notify-send --urgency=critical --icon=dialog-error \
+    "Backup verification FAILED" \
+    "The B2 backup could not be verified. Run: mise run backup:verify"

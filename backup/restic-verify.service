@@ -1,0 +1,12 @@
+[Unit]
+Description=Verify the B2 backup is restorable
+# On failure, systemd starts the notifier below — otherwise a failing check
+# would be exactly as silent as the failing backup it is meant to catch.
+OnFailure=restic-verify-failed.service
+
+[Service]
+Type=oneshot
+WorkingDirectory=%h/Projects/workdesk
+ExecStart=/usr/bin/mise run backup:verify
+Nice=10
+IOSchedulingClass=idle

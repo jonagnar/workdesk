@@ -37,11 +37,48 @@ A failed dump is logged loudly and does not abort the rest of the backup:
 journalctl --user -u restic-backup.service | grep forgejo:
 ```
 
-## Quarterly: test the restore
+## Verification — automatic, monthly
+
+`restic-verify.timer` runs `mise run backup:verify` on the 1st of each month.
+It is silent on success and raises a desktop notification on failure, via
+systemd's `OnFailure=` pointing at `restic-verify-failed.service`.
+
+Four checks, each aimed at a failure that is otherwise **completely silent**:
+
+| check | catches |
+| ----- | ------- |
+| list snapshots in B2 | revoked application key, deleted bucket, no network |
+| restore the age key and compare it to the live one | a repository that lists fine but cannot reconstruct data |
+| the Forgejo dump is a readable tar containing `forgejo-db.sql` | dumps that started failing after an upgrade and have been writing garbage |
+| newest snapshot is under 3 days old | the nightly timer quietly not firing |
+
+That last one matters most. Repository integrity tells you nothing about
+whether anything is still being *put in*.
+
+Run it by hand any time:
 
 ```bash
-mise run backup:restore-test
+mise run backup:verify
 ```
 
-Pulls the age key back out of the latest B2 snapshot into a scratch
-directory. A backup nobody has restored from is a theory.
+The failure path is worth re-testing if you ever change these units — a
+notification that never fires is worse than none, because it reads as
+"everything is fine". To test it, drop in a failing ExecStart, start the
+service, confirm the notification appears, then remove the drop-in:
+
+```bash
+mkdir -p ~/.config/systemd/user/restic-verify.service.d
+printf '[Service]\nExecStart=\nExecStart=/bin/false\n' > ~/.config/systemd/user/restic-verify.service.d/99-test.conf
+systemctl --user daemon-reload && systemctl --user start restic-verify.service
+rm -rf ~/.config/systemd/user/restic-verify.service.d && systemctl --user daemon-reload
+```
+
+## Deeper checks, by hand
+
+```bash
+mise run backup:check         # full integrity verification, slow
+mise run backup:restore-test  # pull the age key into a scratch dir and look at it
+```
+
+`docs/recovery.md` has the full Forgejo restore procedure, rehearsed
+2026-09-20.

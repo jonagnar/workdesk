@@ -30,12 +30,18 @@ run = "sops exec-env backup/restic.env.enc.yaml 'backup/run.sh check'"
 description = "Restore the age key from the latest B2 snapshot into a scratch dir"
 run = "sops exec-env backup/restic.env.enc.yaml 'backup/run.sh restore-test'"
 
+[tasks."backup:verify"]
+description = "Prove the B2 backup is restorable — runs monthly, alerts only on failure"
+run = "sops exec-env backup/restic.env.enc.yaml 'backup/run.sh verify'"
+
 [tasks."backup:install"]
-description = "Install and enable the nightly systemd user timer"
+description = "Install and enable the nightly backup and monthly verify timers"
 run = """
 mkdir -p ~/.config/systemd/user
-cp backup/restic-backup.service backup/restic-backup.timer ~/.config/systemd/user/
+cp backup/restic-backup.service backup/restic-backup.timer \
+   backup/restic-verify.service backup/restic-verify.timer \
+   backup/restic-verify-failed.service ~/.config/systemd/user/
 systemctl --user daemon-reload
-systemctl --user enable --now restic-backup.timer
-systemctl --user list-timers restic-backup.timer
+systemctl --user enable --now restic-backup.timer restic-verify.timer
+systemctl --user list-timers restic-backup.timer restic-verify.timer
 """

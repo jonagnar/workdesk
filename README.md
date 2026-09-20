@@ -54,7 +54,8 @@ mise run backup:snapshots        # what's in each repository
 - [x] Copier template with toggles (`mise run new`)
 - [x] Obsidian vault (`repos/vault`, GSD structure)
 - [x] Backups: local disk + B2, nightly 03:00, last 3 snapshots each,
-      restore-tested 2026-09-19
+      restore-tested 2026-09-19. Forgejo restore rehearsed 2026-09-20.
+      Verified automatically each month — silent unless it fails.
 - [x] `servers` repo: host `hades` (this machine), `mise run deploy -- hades`
 - [x] Forgejo 16.0.5 installed, registration disabled
 - [x] Forgejo backed up: `forgejo dump` on every run, restore-verified

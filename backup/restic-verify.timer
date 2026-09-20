@@ -1,0 +1,12 @@
+[Unit]
+Description=Monthly backup verification
+
+[Timer]
+# Monthly, not quarterly: the check costs seconds, and the window during
+# which a broken backup goes unnoticed should be as short as it is cheap.
+OnCalendar=*-*-01 09:00:00
+Persistent=true
+RandomizedDelaySec=1h
+
+[Install]
+WantedBy=timers.target
