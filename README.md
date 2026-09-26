@@ -73,8 +73,9 @@ mise run backup:snapshots        # what's in each repository
       LAN + WireGuard; only `80`, `443` and `2222` are public, deliberately
 - [ ] Apex `jonnxor.is` and `www` have no records — the Vercel deployment is
       gone and the replacement site isn't built yet. New work, not cleanup.
-- [ ] Forgejo Actions runner — needs a registration token in sops, a Quadlet
-      unit, and a decision about Podman socket access
+- [x] Forgejo Actions runner: dedicated `forgejo-runner` user, own rootless
+      Podman, instance-wide registration. Verified end to end — a real
+      workflow checks out and runs on it. `repos/servers/hosts/hades-runner/`
 
 Tools: git, age, sops, mise, podman, gh, rsync (system); restic, lefthook,
 copier (via mise). Full inventory: [docs/stack.md](docs/stack.md).
