@@ -1,0 +1,13 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  sanity:
+    runs-on: debian
+    steps:
+      - uses: actions/checkout@v6
+      - run: test -f CLAUDE.md && test -d templates/project && echo "workdesk checked out and shaped as expected"
