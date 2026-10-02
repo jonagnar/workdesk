@@ -21,10 +21,13 @@
 - Sessions start in the main checkout (`~/Projects/workdesk`), not an
   app-made worktree. `repos/` is ignored, so a worktree of the desk does
   not contain it and cannot see the vault or any project.
-- Never edit tracked files or switch branches in the user's checkout — of
-  the desk or of any project under `repos/`. For any change, run
-  `git worktree add` in *that* repo on a new branch, work there, and leave
-  the merge to the user. Their checkout stays free for their own work.
+- Changes reach `main` through a pull request on Forgejo — in the desk and
+  in every project under `repos/`. Run `git worktree add` in *that* repo on
+  a new branch, work there, push the branch and open the PR.
+- Direct pushes to `main` are for hotfixes only: small, minor changes (a
+  typo, a one-line fix). Anything larger, or anything in doubt, is a PR.
+- Never edit tracked files or switch branches in the user's checkout. It
+  stays free for their own work; a hotfix is still made from a worktree.
 - The vault is the exception: edit `repos/vault` in place on `main`. It is
   the memory between sessions and must stay a single live copy.
 - The vault is the memory between sessions. Before starting, read
