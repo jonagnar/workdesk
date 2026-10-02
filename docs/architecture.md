@@ -141,7 +141,8 @@ every one of them cost time to diagnose the first time.
 
 ## What is deliberately absent
 
-- **CI/CD pipelines** — nothing is big enough yet. Deploy is a command you run.
+- **CD pipelines** — CI exists (a Forgejo Actions runner on this machine),
+  but nothing deploys itself. Deploy is a command you run.
 - **An orchestrator** — systemd is already an init system and a supervisor.
 - **A secrets manager service** — sops + age is a file and a key.
 - **A dotfiles framework** — mise's global config covers the tool pins.

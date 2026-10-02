@@ -14,7 +14,7 @@ where each one is pinned, see [stack.md](stack.md).
 | **Backblaze B2** | Cheap S3-compatible object storage. | The offsite copy. Chosen over Proton Drive because restic needs a real S3 API. | [↗](https://www.backblaze.com/docs/cloud-storage) |
 | **Podman** | Container engine; rootless and daemonless. | Runs services as ordinary systemd units instead of under a root daemon. | [↗](https://docs.podman.io) |
 | **Quadlet** | A systemd *generator* that turns `.container` files into `.service` units. | Declarative containers, versioned in git, no compose process in production. | [↗](https://docs.podman.io/en/latest/markdown/podman-systemd.unit.5.html) |
-| **Forgejo** | Self-hosted git forge (a community fork of Gitea). | The canonical remote, running on this machine on loopback. Nothing depends on a hosted forge. | [↗](https://forgejo.org/docs/latest/) |
+| **Forgejo** | Self-hosted git forge (a community fork of Gitea). | The canonical remote, running on this machine, public at git.jonnxor.is. Nothing depends on a hosted forge. | [↗](https://forgejo.org/docs/latest/) |
 | **Caddy** | Reverse proxy with automatic HTTPS. | Fronts Forgejo at git.jonnxor.is; obtains and renews the Let's Encrypt certificate with no config beyond the domain name. | [↗](https://caddyserver.com/docs/) |
 | **Obsidian** | Markdown notes app over a plain folder. | The vault is just files — greppable, git-tracked, outlives the app. | [↗](https://obsidian.md/help/) |
 | **Bruno** | Git-friendly API client; collections are plain text files. | API contracts version alongside the code they test, not in someone's cloud workspace. | [↗](https://docs.usebruno.com/) |

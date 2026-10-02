@@ -129,7 +129,8 @@ on start, and migrations are not reversible by changing the tag back.
 | MikroTik DDNS | `git` is a CNAME to the router's `sn.mynetname.net` name, so a PPPoE reconnect doesn't strand the domain | the CNAME goes stale; replace with an `A` record | — |
 | GitHub | one-way push mirror of `workdesk` only, to `jonagnar/workdesk` | nothing — the mirror is a convenience, never a dependency | [docs.github.com](https://docs.github.com) |
 
-Git hosting is self-hosted and there is no CI service. DNS resolution,
+Git hosting and CI are both self-hosted — the Forgejo Actions runner is on
+this machine, not a service. DNS resolution,
 certificate issuance and the dynamic address are three external dependencies
 the forge acquired when it went public — the price of being reachable. The
 GitHub mirror is not one of them: it consumes, it is never consumed.
@@ -152,5 +153,5 @@ The specific pages you'll actually need when editing this system:
 ## Deliberately not in the stack
 
 Reasons are in [architecture.md](architecture.md#what-is-deliberately-absent):
-no CI/CD system, no orchestrator, no secrets-manager service, no dotfiles
+no CD pipeline, no orchestrator, no secrets-manager service, no dotfiles
 framework. Each is a reasonable addition *when a specific pain appears*.
