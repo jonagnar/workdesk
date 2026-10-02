@@ -21,8 +21,12 @@ drive failure. That's B2's job.
 ## What is backed up
 
 `include.txt` minus `exclude.txt` — the whole desk, `repos/` included, plus
-the age key and the global mise config. New projects are covered
+the age key, the global mise config and `~/.ssh` (the Forgejo key, the
+runner deploy key, `config`, `known_hosts`). New projects are covered
 automatically.
+
+`~/.ssh/agent` is excluded: OpenSSH 10.1+ keeps its agent sockets there, and
+a socket is not something to restore.
 
 Also `~/Backups/forgejo/forgejo-dump.tar`: each run calls `forgejo dump`
 first, because Forgejo's repositories and database live in a Podman volume

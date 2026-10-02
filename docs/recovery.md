@@ -14,6 +14,7 @@ instead, go to [onboarding.md](onboarding.md).
 | A file you deleted | yes | [1](#1-a-deleted-or-mangled-file) |
 | The laptop | yes | [2](#2-the-machine-is-gone) |
 | The desk folder | yes | [2](#2-the-machine-is-gone) |
+| SSH keys (`~/.ssh`) | yes | [2](#2-the-machine-is-gone) |
 | The age **private** key | only from Bitwarden or paper | [3](#3-the-age-key) |
 | The restic password | **no** — backups are permanently unreadable | [3](#3-the-age-key) |
 | The B2 account | yes, local repo survives | [4](#4-one-backup-repository-is-gone) |
@@ -77,7 +78,12 @@ The archive stores absolute paths, so the desk appears at
 mkdir -p ~/Projects
 cp -a /tmp/restore/home/jonnxor/Projects/workdesk ~/Projects/
 cp -a /tmp/restore/home/jonnxor/.config/mise/config.toml ~/.config/mise/
+cp -a /tmp/restore/home/jonnxor/.ssh ~/
 ```
+
+`cp -a` keeps the modes ssh insists on (`700` on the directory, `600` on
+private keys). The restored keys are the ones already registered in Forgejo
+and on the runner (`hades_runner_deploy`), so nothing needs re-registering.
 
 Restoring to `--target /` directly would work but overwrites live files; the
 scratch-directory route is safer and barely slower.
