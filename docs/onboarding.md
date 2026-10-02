@@ -101,7 +101,8 @@ git clone ssh://git@git.jonnxor.is:2222/WAAAGH/servers.git
 Both are private, so this needs your SSH key registered in Forgejo — and
 Forgejo has to be *running*, which is a chicken-and-egg problem if this
 machine is the one you're rebuilding. In that case restore from backup
-instead: [recovery.md](recovery.md).
+instead: [recovery.md](recovery.md). That restore also brings back `~/.ssh`,
+so the registered key and the runner deploy key return with it.
 
 Per project, once cloned:
 
