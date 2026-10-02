@@ -23,7 +23,8 @@
   not contain it and cannot see the vault or any project.
 - Changes reach `main` through a pull request on Forgejo — in the desk and
   in every project under `repos/`. Run `git worktree add` in *that* repo on
-  a new branch, work there, push the branch and open the PR.
+  a new branch, work there, push the branch and open the PR. The user
+  merges PRs; Claude never does.
 - Direct pushes to `main` are for hotfixes only: small, minor changes (a
   typo, a one-line fix). Anything larger, or anything in doubt, is a PR.
 - Never edit tracked files or switch branches in the user's checkout. It
