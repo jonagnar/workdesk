@@ -22,7 +22,17 @@ jobs:
           curl -fsSL https://mise.run | sh
           echo "$HOME/.local/bin" >> "$GITHUB_PATH"
           echo "$HOME/.local/share/mise/shims" >> "$GITHUB_PATH"
+      # The runner sets GITHUB_TOKEN to this job's Forgejo token. mise would
+      # send it to api.github.com when it looks up a tool, which fails with
+      # 401 and hands GitHub a token it has no business seeing. Blank it on
+      # each mise step: the runner overwrites a job-level value.
       - run: mise trust && mise install
+        env:
+          GITHUB_TOKEN: ""
       # The same verbs a developer runs locally — CI adds no second definition.
       - run: mise run lint
+        env:
+          GITHUB_TOKEN: ""
       - run: mise run test
+        env:
+          GITHUB_TOKEN: ""
