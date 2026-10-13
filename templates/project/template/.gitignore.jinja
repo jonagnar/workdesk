@@ -9,6 +9,12 @@
 # OS / editor noise
 .DS_Store
 *.swp
+{% if use_claude_md %}
+
+# Claude Code — per-machine state; .claude/settings.json itself is tracked
+.claude/settings.local.json
+.claude/worktrees/
+{% endif %}
 {% if language == "python" %}
 
 # Python

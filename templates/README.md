@@ -25,8 +25,10 @@ works on the machine that created it. `--trust` lets the post-copy tasks run:
 `git init`, `lefthook install`, and encrypting the initial `.env.enc.yaml`.
 
 Toggles: `language` (tool pins + fmt/lint/test commands), `use_lefthook`,
-`use_claude_md`, `use_sops`, `use_podman` (+ `use_database`), `use_bruno`,
-and `kind` (app / library / servers).
+`use_claude_md` (rules + a `.claude/settings.json` allowlist for the mise
+verbs), `use_ci` (Forgejo Actions running lint + test), `use_sops`,
+`use_podman` (+ `use_database`), `use_bruno` (+ `mise run test:api`), and
+`kind` (app / library / servers).
 
 ## Versioning
 

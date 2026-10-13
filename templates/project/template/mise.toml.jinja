@@ -1,5 +1,5 @@
 # Self-contained: tool pins + the shared task verbs (fmt / lint / test / up / down).
-{% if language != "none" %}
+{% if language != "none" or use_bruno %}
 
 [tools]
 {% if language == "python" %}
@@ -13,6 +13,13 @@ rust = "stable"
 go = "latest"
 {% elif language == "dotnet" %}
 dotnet = "latest"
+{% endif %}
+{% if use_bruno %}
+{% if language != "node" %}
+node = "lts"
+{% endif %}
+# Bruno's CLI, so the collection in bruno/ runs without the desktop app.
+"npm:@usebruno/cli" = "latest"
 {% endif %}
 {% endif %}
 {% if use_sops %}
@@ -68,6 +75,12 @@ run = "go test ./..."
 run = "dotnet test"
 {% else %}
 run = "echo 'test: no tests configured'"
+{% endif %}
+{% if use_bruno %}
+
+[tasks."test:api"]
+description = "Run the Bruno collection against a running instance"
+run = "cd bruno && bru run --env local"
 {% endif %}
 {% if use_podman %}
 

@@ -18,6 +18,19 @@
 Use the mise tasks, never the underlying tool directly — they are the
 contract this repo shares with every other project:
 `mise run fmt`, `mise run lint`, `mise run test`{% if use_podman %}, `mise run up`, `mise run down`{% endif %}.
+These are pre-approved in `.claude/settings.json`; reach for them first.
+{% if use_bruno %}
+
+API requests live in `bruno/` as plain `.bru` files. Add or change a request
+there alongside the endpoint it exercises, and run the collection headless
+with `mise run test:api` (it needs the service running).
+{% endif %}
+{% if use_ci %}
+
+CI (`.forgejo/workflows/ci.yml`) runs `mise run lint` and `mise run test` on
+every pull request. A check belongs in one of those two tasks, never in the
+workflow file — CI and a developer's machine must run the same thing.
+{% endif %}
 
 ## Commits
 

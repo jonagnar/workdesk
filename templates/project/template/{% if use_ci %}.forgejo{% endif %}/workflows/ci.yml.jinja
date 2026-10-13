@@ -1,0 +1,28 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  check:
+    runs-on: debian
+    env:
+      MISE_YES: "1"
+{% if use_sops %}
+      # CI holds no age key. Let mise skip .env.enc.yaml instead of failing;
+      # anything that needs a real secret does not belong in lint or test.
+      MISE_SOPS_STRICT: "false"
+{% endif %}
+    steps:
+      - uses: actions/checkout@v6
+      - name: Install mise
+        run: |
+          curl -fsSL https://mise.run | sh
+          echo "$HOME/.local/bin" >> "$GITHUB_PATH"
+          echo "$HOME/.local/share/mise/shims" >> "$GITHUB_PATH"
+      - run: mise trust && mise install
+      # The same verbs a developer runs locally — CI adds no second definition.
+      - run: mise run lint
+      - run: mise run test
