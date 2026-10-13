@@ -1,0 +1,16 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(mise install)",
+      "Bash(mise tasks:*)",
+      "Bash(mise run fmt:*)",
+      "Bash(mise run lint:*)",
+      "Bash(mise run test:*)"{% if use_podman %},
+      "Bash(mise run up:*)",
+      "Bash(mise run down:*)",
+      "Bash(podman ps:*)",
+      "Bash(podman logs:*)"{% endif %}
+
+    ]
+  }
+}

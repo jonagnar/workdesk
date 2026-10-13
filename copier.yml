@@ -57,7 +57,12 @@ use_lefthook:
 
 use_claude_md:
   type: bool
-  help: CLAUDE.md with the SDD/TDD loop and repo rules for Claude Code
+  help: CLAUDE.md with the SDD/TDD loop and repo rules for Claude Code, plus a .claude/settings.json that pre-approves the mise verbs
+  default: true
+
+use_ci:
+  type: bool
+  help: Forgejo Actions workflow — runs `mise run lint` and `mise run test` on every PR and on main
   default: true
 
 use_sops:
@@ -84,5 +89,5 @@ use_database:
 
 use_bruno:
   type: bool
-  help: Bruno API collection (bruno/) versioned next to the code
+  help: Bruno API collection (bruno/) versioned next to the code, runnable headless with `mise run test:api`
   default: false

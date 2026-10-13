@@ -18,6 +18,7 @@ mise run fmt                     # format
 mise run lint                    # lint
 mise run test                    # tests
 mise run up / down               # local services (only if podman was enabled)
+mise run test:api                # Bruno collection, headless (only if bruno was enabled)
 ```
 
 ## Secrets
