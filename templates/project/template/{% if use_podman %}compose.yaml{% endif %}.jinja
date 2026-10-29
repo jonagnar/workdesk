@@ -2,7 +2,15 @@
 # servers repo, referencing the image this repo's CI builds.
 services:
   app:
+{% if language == "dotnet" %}
+    build:
+      context: .
+      args:
+        # The project under src/ this service runs, e.g. MyApp.Web
+        PROJECT: ""
+{% else %}
     build: .
+{% endif %}
     image: localhost/{{ project_slug }}:dev
 {% if use_database %}
     depends_on:
