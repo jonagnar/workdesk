@@ -12,7 +12,8 @@ rust = "stable"
 {% elif language == "go" %}
 go = "latest"
 {% elif language == "dotnet" %}
-dotnet = "latest"
+# Same major as the sdk/aspnet images in the Containerfile.
+dotnet = "10"
 {% endif %}
 {% if use_bruno %}
 {% if language != "node" %}
@@ -40,7 +41,13 @@ run = "cargo fmt"
 {% elif language == "go" %}
 run = "gofmt -w ."
 {% elif language == "dotnet" %}
-run = "dotnet format"
+# A fresh scaffold has no solution yet, and dotnet fails without one: say so and pass.
+run = '''
+if [ -z "$(find . -maxdepth 1 -name '*.sln' -o -name '*.slnx' -o -name '*.*proj')" ]; then
+  echo "fmt: no .sln, .slnx or project file in the root yet, nothing to format"; exit 0
+fi
+dotnet format
+'''
 {% else %}
 run = "echo 'fmt: no formatter configured'"
 {% endif %}
@@ -56,7 +63,13 @@ run = "cargo clippy -- -D warnings"
 {% elif language == "go" %}
 run = "go vet ./..."
 {% elif language == "dotnet" %}
-run = "dotnet build -warnaserror"
+# A fresh scaffold has no solution yet, and dotnet fails without one: say so and pass.
+run = '''
+if [ -z "$(find . -maxdepth 1 -name '*.sln' -o -name '*.slnx' -o -name '*.*proj')" ]; then
+  echo "lint: no .sln, .slnx or project file in the root yet, nothing to lint"; exit 0
+fi
+dotnet build -warnaserror
+'''
 {% else %}
 run = "echo 'lint: no linter configured'"
 {% endif %}
@@ -72,7 +85,13 @@ run = "cargo test"
 {% elif language == "go" %}
 run = "go test ./..."
 {% elif language == "dotnet" %}
-run = "dotnet test"
+# A fresh scaffold has no solution yet, and dotnet fails without one: say so and pass.
+run = '''
+if [ -z "$(find . -maxdepth 1 -name '*.sln' -o -name '*.slnx' -o -name '*.*proj')" ]; then
+  echo "test: no .sln, .slnx or project file in the root yet, nothing to test"; exit 0
+fi
+dotnet test
+'''
 {% else %}
 run = "echo 'test: no tests configured'"
 {% endif %}

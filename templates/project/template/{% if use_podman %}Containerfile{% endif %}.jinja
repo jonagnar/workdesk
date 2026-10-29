@@ -30,15 +30,26 @@ FROM gcr.io/distroless/static-debian12
 COPY --from=build /out/{{ project_slug }} /{{ project_slug }}
 ENTRYPOINT ["/{{ project_slug }}"]
 {% elif language == "dotnet" %}
+# One image per deployable project under src/:
+#   podman build --build-arg PROJECT=MyApp.Web -t myapp-web .
+ARG PROJECT
+
 FROM mcr.microsoft.com/dotnet/sdk:10.0 AS build
+ARG PROJECT
+RUN test -n "$PROJECT" || { echo "pass --build-arg PROJECT=<name of the project under src/>"; exit 1; }
 WORKDIR /src
 COPY . .
-RUN dotnet publish -c Release -o /out
+RUN dotnet publish "src/$PROJECT" -c Release -o /out
 
 FROM mcr.microsoft.com/dotnet/aspnet:10.0
+ARG PROJECT
+ENV APP_DLL="$PROJECT.dll"
 WORKDIR /app
 COPY --from=build /out .
-ENTRYPOINT ["dotnet", "{{ project_name | replace(' ', '') }}.dll"]
+# The aspnet image ships the non-root `app` user (APP_UID) but starts as root.
+USER $APP_UID
+EXPOSE 8080
+ENTRYPOINT ["sh", "-c", "exec dotnet \"$APP_DLL\" \"$@\"", "--"]
 {% else %}
 FROM docker.io/library/alpine:3
 WORKDIR /app
