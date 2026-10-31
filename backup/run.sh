@@ -13,6 +13,7 @@ cd "$(dirname "$0")/.."
 
 FORGEJO_DUMP_DIR="$HOME/Backups/forgejo"
 KUMA_DUMP_DIR="$HOME/Backups/uptime-kuma"
+VAULTWARDEN_DUMP_DIR="$HOME/Backups/vaultwarden"
 
 # Forgejo's repositories and database live in a Podman volume, outside the
 # paths restic walks — and its SQLite file cannot be copied safely while the
@@ -70,12 +71,53 @@ dump_kuma() {
 	fi
 }
 
+# Vaultwarden's accounts and vault items live in a Podman volume too. The image
+# has no sqlite3, but `vaultwarden backup` writes a consistent copy of the live
+# database into /data. Its root is read-only, so the copy waits in /data/tmp.
+#
+# The items are encrypted by each account's master password, but rsa_key.pem
+# signs login sessions, so this archive is readable by its owner only too.
+dump_vaultwarden() {
+	if ! podman ps --filter 'name=^vaultwarden$' --format '{{.Names}}' | grep -q vaultwarden; then
+		echo "vaultwarden: not running, skipping dump" >&2
+		return 0
+	fi
+
+	mkdir -p -m 700 "$VAULTWARDEN_DUMP_DIR"
+	tmp="$VAULTWARDEN_DUMP_DIR/.dump.tmp"
+
+	if (umask 077 && podman exec vaultwarden sh -c '
+		set -e
+		rm -rf /data/tmp/dump
+		mkdir -p /data/tmp/dump
+		/vaultwarden backup >/dev/null
+		mv /data/db_*.sqlite3 /data/tmp/dump/db.sqlite3
+		cd /data
+		cp -a rsa_key.pem /data/tmp/dump/
+		for f in attachments sends config.json; do
+			if [ -e "$f" ]; then cp -a "$f" /data/tmp/dump/; fi
+		done
+		# All from one directory: busybox tar keeps only the last -C, which would
+		# silently archive the live db.sqlite3 and miss whatever is in its WAL.
+		cd /data/tmp/dump
+		tar -cf - *
+		cd /data
+		rm -rf /data/tmp/dump' >"$tmp") 2>/dev/null; then
+		mv "$tmp" "$VAULTWARDEN_DUMP_DIR/vaultwarden-dump.tar"
+		echo "vaultwarden: dumped $(du -h "$VAULTWARDEN_DUMP_DIR/vaultwarden-dump.tar" | cut -f1)" >&2
+	else
+		rm -f "$tmp"
+		echo "vaultwarden: DUMP FAILED — backing up everything else; the password vault is NOT covered by this snapshot" >&2
+	fi
+}
+
 keep() { restic "$@" forget --keep-last 3 --group-by host --prune; }
 
 case "${1:?usage: run.sh backup|init|snapshots|check|restore-test|verify}" in
 backup)
 	dump_forgejo
 	dump_kuma
+	dump_vaultwarden
 	restic -r "$RESTIC_LOCAL" backup --files-from backup/include.txt --exclude-file backup/exclude.txt
 	keep -r "$RESTIC_LOCAL"
 	restic backup --files-from backup/include.txt --exclude-file backup/exclude.txt
@@ -145,7 +187,16 @@ verify)
 		fail=1
 	fi
 
-	# 5. The most recent snapshot is recent. Catches the timer silently not
+	# 5. The same for the Vaultwarden dump.
+	if restic restore latest --target "$dir" --include "$HOME/Backups/vaultwarden" >/dev/null 2>&1 &&
+		tar -tf "$dir$HOME/Backups/vaultwarden/vaultwarden-dump.tar" 2>/dev/null | grep -q '^db.sqlite3$'; then
+		echo "ok: vaultwarden dump readable and contains db.sqlite3"
+	else
+		echo "VERIFY FAIL: vaultwarden dump missing, unreadable, or has no database" >&2
+		fail=1
+	fi
+
+	# 6. The most recent snapshot is recent. Catches the timer silently not
 	#    firing, which no amount of repository integrity would reveal.
 	last=$(restic snapshots --latest 1 --json 2>/dev/null | grep -oE '"time":"[^"]+"' | head -1 | cut -d'"' -f4)
 	if [ -n "$last" ]; then
