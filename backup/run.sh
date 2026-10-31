@@ -12,6 +12,7 @@ set -eu
 cd "$(dirname "$0")/.."
 
 FORGEJO_DUMP_DIR="$HOME/Backups/forgejo"
+KUMA_DUMP_DIR="$HOME/Backups/uptime-kuma"
 
 # Forgejo's repositories and database live in a Podman volume, outside the
 # paths restic walks — and its SQLite file cannot be copied safely while the
@@ -40,11 +41,41 @@ dump_forgejo() {
 	fi
 }
 
+# Uptime Kuma's monitors and notifications exist only in its SQLite database,
+# in a Podman volume. Same reasoning as Forgejo: `.backup` takes a consistent
+# copy of a live database, which copying the file would not.
+#
+# The archive holds notification tokens and the admin password hash, so it is
+# readable by its owner only.
+dump_kuma() {
+	if ! podman ps --filter 'name=^uptime-kuma$' --format '{{.Names}}' | grep -q uptime-kuma; then
+		echo "uptime-kuma: not running, skipping dump" >&2
+		return 0
+	fi
+
+	mkdir -p -m 700 "$KUMA_DUMP_DIR"
+	tmp="$KUMA_DUMP_DIR/.dump.tmp"
+
+	if (umask 077 && podman exec uptime-kuma sh -c '
+		sqlite3 /app/data/kuma.db ".backup /tmp/kuma.db" &&
+			tar -cf - -C /tmp kuma.db -C /app/data db-config.json upload screenshots
+		status=$?
+		rm -f /tmp/kuma.db
+		exit $status' >"$tmp") 2>/dev/null; then
+		mv "$tmp" "$KUMA_DUMP_DIR/uptime-kuma-dump.tar"
+		echo "uptime-kuma: dumped $(du -h "$KUMA_DUMP_DIR/uptime-kuma-dump.tar" | cut -f1)" >&2
+	else
+		rm -f "$tmp"
+		echo "uptime-kuma: DUMP FAILED — backing up everything else; monitors are NOT covered by this snapshot" >&2
+	fi
+}
+
 keep() { restic "$@" forget --keep-last 3 --group-by host --prune; }
 
 case "${1:?usage: run.sh backup|init|snapshots|check|restore-test|verify}" in
 backup)
 	dump_forgejo
+	dump_kuma
 	restic -r "$RESTIC_LOCAL" backup --files-from backup/include.txt --exclude-file backup/exclude.txt
 	keep -r "$RESTIC_LOCAL"
 	restic backup --files-from backup/include.txt --exclude-file backup/exclude.txt
@@ -105,7 +136,16 @@ verify)
 		fail=1
 	fi
 
-	# 4. The most recent snapshot is recent. Catches the timer silently not
+	# 4. The same for the Uptime Kuma dump.
+	if restic restore latest --target "$dir" --include "$HOME/Backups/uptime-kuma" >/dev/null 2>&1 &&
+		tar -tf "$dir$HOME/Backups/uptime-kuma/uptime-kuma-dump.tar" 2>/dev/null | grep -q '^kuma.db$'; then
+		echo "ok: uptime-kuma dump readable and contains kuma.db"
+	else
+		echo "VERIFY FAIL: uptime-kuma dump missing, unreadable, or has no database" >&2
+		fail=1
+	fi
+
+	# 5. The most recent snapshot is recent. Catches the timer silently not
 	#    firing, which no amount of repository integrity would reveal.
 	last=$(restic snapshots --latest 1 --json 2>/dev/null | grep -oE '"time":"[^"]+"' | head -1 | cut -d'"' -f4)
 	if [ -n "$last" ]; then

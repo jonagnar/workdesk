@@ -19,6 +19,7 @@ instead, go to [onboarding.md](onboarding.md).
 | The restic password | **no** — backups are permanently unreadable | [3](#3-the-age-key) |
 | The B2 account | yes, local repo survives | [4](#4-one-backup-repository-is-gone) |
 | Forgejo's data | yes, from the nightly dump | [5](#5-forgejo) |
+| Uptime Kuma's monitors | yes, from the nightly dump | [5](#uptime-kuma) |
 | A git remote | yes, local clones are complete | [6](#6-a-remote) |
 
 ## 1. A deleted or mangled file
@@ -226,6 +227,40 @@ that safety net is worth keeping.
 For a personal forge that window is acceptable. If it stops being so, run
 `mise run backup` by hand after anything important, or move the timer to
 several times a day.
+
+### Uptime Kuma
+
+Monitors, notifications and the admin account exist only in Kuma's SQLite
+database. Every backup run writes a consistent copy, with the rest of its data
+directory, to `~/Backups/uptime-kuma/uptime-kuma-dump.tar`. Failures are logged
+the same way as Forgejo's.
+
+**Rehearsed 2026-10-31** against a throwaway instance on a scratch volume, from a
+local dump rather than one restored from restic: the admin account came back and
+the database passed its integrity check. It held no monitors at the time.
+
+```bash
+# 1. get the archive back
+cd ~/Projects/workdesk
+sops exec-env backup/restic.env.enc.yaml \
+  'restic restore latest --target /tmp/kuma --include /home/jonnxor/Backups/uptime-kuma'
+
+# 2. stop the service so nothing writes while you replace its data
+systemctl --user stop uptime-kuma
+
+# 3. populate the volume. The -wal and -shm files belong to the database being
+#    replaced, so they must go. The image runs as uid/gid 1000 (node).
+podman run --rm -v systemd-uptime-kuma:/target \
+  -v /tmp/kuma/home/jonnxor/Backups/uptime-kuma:/dump:ro docker.io/library/alpine:3 sh -c '
+    rm -f /target/kuma.db-wal /target/kuma.db-shm
+    tar xf /dump/uptime-kuma-dump.tar -C /target
+    chown -R 1000:1000 /target'
+
+# 4. back up
+systemctl --user start uptime-kuma
+```
+
+The archive holds notification tokens, so delete `/tmp/kuma` afterwards.
 
 ## 6. A remote
 
