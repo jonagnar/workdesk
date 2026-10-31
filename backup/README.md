@@ -103,7 +103,11 @@ rm -rf ~/.config/systemd/user/restic-verify.service.d && systemctl --user daemon
 ```bash
 mise run backup:check         # full integrity verification, slow
 mise run backup:restore-test  # pull the age key into a scratch dir and look at it
+mise run backup:restore-sogin # pull the Sögin dump into ~/Backups/sogin-restore (never backed up)
 ```
+
+The trial that restores that dump into a throwaway Postgres lives in the sogin
+repo's runbook, not here.
 
 `docs/recovery.md` has the full Forgejo restore procedure, rehearsed
 2026-09-20.

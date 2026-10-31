@@ -145,7 +145,7 @@ dump_sogin() {
 
 keep() { restic "$@" forget --keep-last 3 --group-by host --prune; }
 
-case "${1:?usage: run.sh backup|init|snapshots|check|restore-test|verify}" in
+case "${1:?usage: run.sh backup|init|snapshots|check|restore-test|restore-sogin|verify}" in
 backup)
 	dump_forgejo
 	dump_kuma
@@ -173,6 +173,17 @@ restore-test)
 	restic restore latest --target "$dir" --include "$HOME/.config/sops/age/keys.txt"
 	echo "restored into $dir:"
 	find "$dir" -type f
+	;;
+restore-sogin)
+	# The way back to the Sögin dump: only the desk holds restic's credentials,
+	# and a project repo may not reference the desk, so the desk owns this step.
+	# ~/Backups/sogin-restore is not in include.txt, so it is never backed up.
+	# The rehearsal that uses the file lives in the sogin repo's runbook.
+	dir="$HOME/Backups/sogin-restore"
+	rm -rf "$dir"
+	mkdir -p -m 700 "$dir"
+	restic restore latest --target "$dir" --include "$HOME/Backups/sogin-postgres"
+	echo "$dir$HOME/Backups/sogin-postgres/sogin-dump.sql"
 	;;
 verify)
 	# Run unattended by restic-verify.timer. Exits non-zero on any failure,
