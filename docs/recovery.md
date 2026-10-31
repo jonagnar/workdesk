@@ -20,6 +20,7 @@ instead, go to [onboarding.md](onboarding.md).
 | The B2 account | yes, local repo survives | [4](#4-one-backup-repository-is-gone) |
 | Forgejo's data | yes, from the nightly dump | [5](#5-forgejo) |
 | Uptime Kuma's monitors | yes, from the nightly dump | [5](#uptime-kuma) |
+| The Vaultwarden vault | yes, from the nightly dump | [5](#vaultwarden) |
 | A git remote | yes, local clones are complete | [6](#6-a-remote) |
 
 ## 1. A deleted or mangled file
@@ -261,6 +262,43 @@ systemctl --user start uptime-kuma
 ```
 
 The archive holds notification tokens, so delete `/tmp/kuma` afterwards.
+
+### Vaultwarden
+
+Accounts and vault items live in Vaultwarden's SQLite database. Every backup run
+writes a consistent copy, with `rsa_key.pem`, attachments and sends, to
+`~/Backups/vaultwarden/vaultwarden-dump.tar`. Items stay encrypted by the master
+password, so **without the master password the restored vault is unreadable**.
+
+Restic keeps the last 3 snapshots, so a mistake noticed after about three days
+can't be undone from here.
+
+**Rehearsed 2026-10-31** against a throwaway instance on a scratch volume, from a
+local dump rather than one restored from restic: the account came back and the
+database passed its integrity check. It held no vault items at the time.
+
+```bash
+# 1. get the archive back
+cd ~/Projects/workdesk
+sops exec-env backup/restic.env.enc.yaml \
+  'restic restore latest --target /tmp/vw --include /home/jonnxor/Backups/vaultwarden'
+
+# 2. stop the service so nothing writes while you replace its data
+systemctl --user stop vaultwarden
+
+# 3. populate the volume. The -wal and -shm files belong to the database being
+#    replaced, so they must go. The container runs as uid/gid 1000.
+podman run --rm -v systemd-vaultwarden:/target \
+  -v /tmp/vw/home/jonnxor/Backups/vaultwarden:/dump:ro docker.io/library/alpine:3 sh -c '
+    rm -f /target/db.sqlite3-wal /target/db.sqlite3-shm
+    tar xf /dump/vaultwarden-dump.tar -C /target
+    chown -R 1000:1000 /target'
+
+# 4. back up
+systemctl --user start vaultwarden
+```
+
+The archive holds `rsa_key.pem`, so delete `/tmp/vw` afterwards.
 
 ## 6. A remote
 
