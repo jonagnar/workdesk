@@ -14,6 +14,7 @@ cd "$(dirname "$0")/.."
 FORGEJO_DUMP_DIR="$HOME/Backups/forgejo"
 KUMA_DUMP_DIR="$HOME/Backups/uptime-kuma"
 VAULTWARDEN_DUMP_DIR="$HOME/Backups/vaultwarden"
+SOGIN_DUMP_DIR="$HOME/Backups/sogin-postgres"
 
 # Forgejo's repositories and database live in a Podman volume, outside the
 # paths restic walks — and its SQLite file cannot be copied safely while the
@@ -111,6 +112,37 @@ dump_vaultwarden() {
 	fi
 }
 
+# Sögin's Postgres holds its content and, later, customers' quote requests, in
+# a Podman volume outside the paths restic walks. `pg_dump` reads one
+# transaction, so a backup that runs while the site is in use still gets a
+# consistent copy.
+#
+# Plain uncompressed SQL on purpose, for the same reason as the tar above:
+# restic deduplicates by content. pg_dump 17.11 writes a random \restrict key
+# on every run, which would make two dumps of an unchanged database differ in
+# two lines, so --restrict-key fixes it. The key is not a secret: it only guards
+# psql against meta-commands in a hostile dump, and this dump is our own.
+#
+# The dump holds customer data, so it is readable by its owner only.
+dump_sogin() {
+	if ! podman ps --filter 'name=^sogin-postgres$' --format '{{.Names}}' | grep -q sogin-postgres; then
+		echo "sogin-postgres: not running, skipping dump" >&2
+		return 0
+	fi
+
+	mkdir -p -m 700 "$SOGIN_DUMP_DIR"
+	tmp="$SOGIN_DUMP_DIR/.dump.tmp"
+
+	# Local socket inside the container, so no password is involved.
+	if (umask 077 && podman exec sogin-postgres pg_dump -U sogin -d sogin --restrict-key=sogin >"$tmp") 2>/dev/null; then
+		mv "$tmp" "$SOGIN_DUMP_DIR/sogin-dump.sql"
+		echo "sogin-postgres: dumped $(du -h "$SOGIN_DUMP_DIR/sogin-dump.sql" | cut -f1)" >&2
+	else
+		rm -f "$tmp"
+		echo "sogin-postgres: DUMP FAILED — backing up everything else; the Sögin database is NOT covered by this snapshot" >&2
+	fi
+}
+
 keep() { restic "$@" forget --keep-last 3 --group-by host --prune; }
 
 case "${1:?usage: run.sh backup|init|snapshots|check|restore-test|verify}" in
@@ -118,6 +150,7 @@ backup)
 	dump_forgejo
 	dump_kuma
 	dump_vaultwarden
+	dump_sogin
 	restic -r "$RESTIC_LOCAL" backup --files-from backup/include.txt --exclude-file backup/exclude.txt
 	keep -r "$RESTIC_LOCAL"
 	restic backup --files-from backup/include.txt --exclude-file backup/exclude.txt
@@ -196,7 +229,17 @@ verify)
 		fail=1
 	fi
 
-	# 6. The most recent snapshot is recent. Catches the timer silently not
+	# 6. The Sögin dump in the latest snapshot ran to the end. pg_dump writes
+	#    its completion line last, so a truncated file lacks it.
+	if restic restore latest --target "$dir" --include "$HOME/Backups/sogin-postgres" >/dev/null 2>&1 &&
+		grep -q '^-- PostgreSQL database dump complete' "$dir$HOME/Backups/sogin-postgres/sogin-dump.sql" 2>/dev/null; then
+		echo "ok: sogin dump present and complete"
+	else
+		echo "VERIFY FAIL: sogin dump missing, or lacks its completion line" >&2
+		fail=1
+	fi
+
+	# 7. The most recent snapshot is recent. Catches the timer silently not
 	#    firing, which no amount of repository integrity would reveal.
 	last=$(restic snapshots --latest 1 --json 2>/dev/null | grep -oE '"time":"[^"]+"' | head -1 | cut -d'"' -f4)
 	if [ -n "$last" ]; then

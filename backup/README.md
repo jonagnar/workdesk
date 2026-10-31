@@ -45,10 +45,18 @@ vault: its database, `rsa_key.pem`, attachments and sends. Vault items stay
 encrypted by the master password, but `rsa_key.pem` signs login sessions, so
 this archive is owner-only too.
 
+Also `~/Backups/sogin-postgres/sogin-dump.sql`, for Sögin's Postgres: its content
+and, later, customers' quote requests live in a Podman volume. `pg_dump` takes
+one consistent transaction, so a run while the site is in use is safe. It is
+plain SQL on purpose, so restic can deduplicate it, with a fixed
+`--restrict-key` so two dumps of an unchanged database are byte-identical
+(pg_dump otherwise writes a random key every run). It holds customer data, so
+it is owner-only too.
+
 A failed dump is logged loudly and does not abort the rest of the backup:
 
 ```bash
-journalctl --user -u restic-backup.service | grep -E 'forgejo:|uptime-kuma:|vaultwarden:'
+journalctl --user -u restic-backup.service | grep -E 'forgejo:|uptime-kuma:|vaultwarden:|sogin-postgres:'
 ```
 
 ## Verification — automatic, monthly
@@ -57,7 +65,7 @@ journalctl --user -u restic-backup.service | grep -E 'forgejo:|uptime-kuma:|vaul
 It is silent on success and raises a desktop notification on failure, via
 systemd's `OnFailure=` pointing at `restic-verify-failed.service`.
 
-Six checks, each aimed at a failure that is otherwise **completely silent**:
+Seven checks, each aimed at a failure that is otherwise **completely silent**:
 
 | check | catches |
 | ----- | ------- |
@@ -66,6 +74,7 @@ Six checks, each aimed at a failure that is otherwise **completely silent**:
 | the Forgejo dump is a readable tar containing `forgejo-db.sql` | dumps that started failing after an upgrade and have been writing garbage |
 | the Uptime Kuma dump is a readable tar containing `kuma.db` | the same, for monitors and notifications |
 | the Vaultwarden dump is a readable tar containing `db.sqlite3` | the same, for the password vault |
+| the Sögin dump ends with `-- PostgreSQL database dump complete` | a missing or truncated dump of the Sögin database |
 | newest snapshot is under 3 days old | the nightly timer quietly not firing |
 
 That last one matters most. Repository integrity tells you nothing about
