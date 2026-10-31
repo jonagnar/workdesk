@@ -35,10 +35,15 @@ server is running. The dump is an uncompressed tar on purpose — restic
 deduplicates by content, so unchanged repositories cost nothing on the next
 snapshot, where a zip would be stored whole every time.
 
+Also `~/Backups/uptime-kuma/uptime-kuma-dump.tar`, for the same reason: Uptime
+Kuma's monitors and notifications exist only in a SQLite database in a Podman
+volume. It holds notification tokens and the admin password hash, so it is
+readable by its owner only.
+
 A failed dump is logged loudly and does not abort the rest of the backup:
 
 ```bash
-journalctl --user -u restic-backup.service | grep forgejo:
+journalctl --user -u restic-backup.service | grep -E 'forgejo:|uptime-kuma:'
 ```
 
 ## Verification — automatic, monthly
@@ -47,13 +52,14 @@ journalctl --user -u restic-backup.service | grep forgejo:
 It is silent on success and raises a desktop notification on failure, via
 systemd's `OnFailure=` pointing at `restic-verify-failed.service`.
 
-Four checks, each aimed at a failure that is otherwise **completely silent**:
+Five checks, each aimed at a failure that is otherwise **completely silent**:
 
 | check | catches |
 | ----- | ------- |
 | list snapshots in B2 | revoked application key, deleted bucket, no network |
 | restore the age key and compare it to the live one | a repository that lists fine but cannot reconstruct data |
 | the Forgejo dump is a readable tar containing `forgejo-db.sql` | dumps that started failing after an upgrade and have been writing garbage |
+| the Uptime Kuma dump is a readable tar containing `kuma.db` | the same, for monitors and notifications |
 | newest snapshot is under 3 days old | the nightly timer quietly not firing |
 
 That last one matters most. Repository integrity tells you nothing about
