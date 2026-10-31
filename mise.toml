@@ -30,6 +30,10 @@ run = "sops exec-env backup/restic.env.enc.yaml 'backup/run.sh check'"
 description = "Restore the age key from the latest B2 snapshot into a scratch dir"
 run = "sops exec-env backup/restic.env.enc.yaml 'backup/run.sh restore-test'"
 
+[tasks."backup:restore-sogin"]
+description = "Restore the Sögin dump from the latest B2 snapshot into ~/Backups/sogin-restore"
+run = "sops exec-env backup/restic.env.enc.yaml 'backup/run.sh restore-sogin'"
+
 [tasks."backup:verify"]
 description = "Prove the B2 backup is restorable — runs monthly, alerts only on failure"
 run = "sops exec-env backup/restic.env.enc.yaml 'backup/run.sh verify'"

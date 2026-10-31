@@ -2,6 +2,7 @@
 /home/jonnxor/Backups/forgejo
 /home/jonnxor/Backups/uptime-kuma
 /home/jonnxor/Backups/vaultwarden
+/home/jonnxor/Backups/sogin-postgres
 /home/jonnxor/.config/sops/age/keys.txt
 /home/jonnxor/.config/mise/config.toml
 /home/jonnxor/.ssh
