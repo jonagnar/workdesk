@@ -96,8 +96,8 @@ Each project is its own repo. Clone whichever you need into `repos/`:
 cd ~/Projects/workdesk/repos
 git clone ssh://git@git.jonnxor.is:2222/WAAAGH/_vault.git
 git clone ssh://git@git.jonnxor.is:2222/WAAAGH/jonnxor-vault.git
-git clone ssh://git@git.jonnxor.is:2222/WAAAGH/sogin-vault.git sogin
-git clone ssh://git@git.jonnxor.is:2222/WAAAGH/_servers.git servers
+git clone ssh://git@git.jonnxor.is:2222/WAAAGH/sogin-vault.git
+git clone ssh://git@git.jonnxor.is:2222/WAAAGH/_servers.git
 ```
 
 All are private, so this needs your SSH key registered in Forgejo — and
@@ -118,7 +118,7 @@ see [recovery.md](recovery.md).
 ## 7. Obsidian
 
 Open Obsidian → *Open folder as vault* → `~/Projects/workdesk/repos/_vault`,
-and the same for `repos/jonnxor-vault` and `repos/sogin`.
+and the same for `repos/jonnxor-vault` and `repos/sogin-vault`.
 Settings travel with the folder; the Templates plugin is already configured to
 point at `templates/`.
 
@@ -148,7 +148,7 @@ actually uses:
 python3 -c "import socket;print(socket.getaddrinfo('git.jonnxor.is',2222)[0][4][0])"
 ```
 
-That must print `192.168.50.33`. Full explanation in `repos/servers/dns.md`.
+That must print `192.168.50.33`. Full explanation in `repos/_servers/dns.md`.
 
 On a machine *outside* this LAN, skip both: the public address is correct
 there.
@@ -159,14 +159,14 @@ Git hosting runs on this machine at https://git.jonnxor.is, behind Caddy.
 To bring it up on a rebuilt machine:
 
 ```bash
-cd ~/Projects/workdesk/repos/servers
+cd ~/Projects/workdesk/repos/_servers
 mise run lint                 # units generate?
 mise run deploy -- hades      # install and start
 ```
 
 First-run steps (admin account, disabling registration, adding your SSH key)
 and the going-public checklist — sysctl, DNS, router forwarding, and the order
-they must happen in — are in `repos/servers/README.md`.
+they must happen in — are in `repos/_servers/README.md`.
 
 If the host directory is named after a *different* machine, that name is used
 as an SSH alias and needs a matching `Host` block in `~/.ssh/config`.
@@ -179,7 +179,7 @@ mise run backup:snapshots     # both repositories listed
 mise run backup:verify        # the backup is provably restorable
 python3 -c "import socket;print(socket.getaddrinfo('git.jonnxor.is',2222)[0][4][0])"
 ssh -p 2222 git@git.jonnxor.is          # "Hi there, <you>"
-cd repos/servers && mise run lint        # units generate
+cd repos/_servers && mise run lint        # units generate
 ```
 
 All green means the machine is fully set up. The resolution check is there

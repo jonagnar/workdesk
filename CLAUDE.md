@@ -30,9 +30,8 @@
 - Never edit tracked files or switch branches in the user's checkout. It
   stays free for their own work; a hotfix is still made from a worktree.
 - The vaults are the memory between sessions. A project's prefix picks its
-  vault: `jonnxor-*` in `repos/jonnxor-vault`, `sogin-*` in `repos/sogin`
-  (the `sogin-vault` repo; the folder keeps its name until Phase 2 lands),
-  everything else in `repos/_vault`, which also holds capture and weekly
+  vault: `jonnxor-*` in `repos/jonnxor-vault`, `sogin-*` in
+  `repos/sogin-vault`, everything else in `repos/_vault`, which also holds capture and weekly
   review.
 - The vaults are the exception: edit `projects/`, `specs/` and `reference/` in
   place on `main`, each a single live copy. In `sogin-vault`, everything else

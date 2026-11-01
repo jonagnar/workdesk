@@ -12,8 +12,8 @@ and the rules — nothing that needs maintaining by hand.
 └── repos/               ignored; every project lives here
     ├── _vault/          core Obsidian vault: capture, review, desk, servers
     ├── jonnxor-vault/   Obsidian vault for jonnxor-*
-    ├── sogin/           Obsidian vault for sogin-* (the sogin-vault repo)
-    └── servers/         Podman Quadlet units per host (the _servers repo)
+    ├── sogin-vault/     Obsidian vault and meta repo for sogin-*
+    └── _servers/        Podman Quadlet units per host (own repo)
 ```
 
 Projects in `repos/` are standalone: config got there by *copy* (a copier
@@ -77,7 +77,7 @@ mise run backup:snapshots        # what's in each repository
       gone and the replacement site isn't built yet. New work, not cleanup.
 - [x] Forgejo Actions runner: dedicated `forgejo-runner` user, own rootless
       Podman, instance-wide registration. Verified end to end — a real
-      workflow checks out and runs on it. `repos/servers/hosts/hades-runner/`
+      workflow checks out and runs on it. `repos/_servers/hosts/hades-runner/`
 
 Tools: git, age, sops, mise, podman, gh, rsync (system); restic, lefthook,
 copier (via mise). Full inventory: [docs/stack.md](docs/stack.md).
