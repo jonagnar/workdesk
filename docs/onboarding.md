@@ -56,7 +56,7 @@ age-keygen -y ~/.config/sops/age/keys.txt
 
 ```bash
 mkdir -p ~/Projects && cd ~/Projects
-git clone ssh://git@git.jonnxor.is:2222/WAAAGH/workdesk.git
+git clone ssh://git@git.jonnxor.is:2222/WAAAGH/_workdesk.git workdesk
 cd workdesk
 mise trust
 mise install                           # restic, lefthook, copier
@@ -94,11 +94,13 @@ Each project is its own repo. Clone whichever you need into `repos/`:
 
 ```bash
 cd ~/Projects/workdesk/repos
-git clone ssh://git@git.jonnxor.is:2222/jonnxor/vault.git
-git clone ssh://git@git.jonnxor.is:2222/WAAAGH/servers.git
+git clone ssh://git@git.jonnxor.is:2222/WAAAGH/_vault.git
+git clone ssh://git@git.jonnxor.is:2222/WAAAGH/jonnxor-vault.git
+git clone ssh://git@git.jonnxor.is:2222/WAAAGH/sogin-vault.git sogin
+git clone ssh://git@git.jonnxor.is:2222/WAAAGH/_servers.git servers
 ```
 
-Both are private, so this needs your SSH key registered in Forgejo — and
+All are private, so this needs your SSH key registered in Forgejo — and
 Forgejo has to be *running*, which is a chicken-and-egg problem if this
 machine is the one you're rebuilding. In that case restore from backup
 instead: [recovery.md](recovery.md). That restore also brings back `~/.ssh`,
@@ -115,7 +117,8 @@ see [recovery.md](recovery.md).
 
 ## 7. Obsidian
 
-Open Obsidian → *Open folder as vault* → `~/Projects/workdesk/repos/vault`.
+Open Obsidian → *Open folder as vault* → `~/Projects/workdesk/repos/_vault`,
+and the same for `repos/jonnxor-vault` and `repos/sogin`.
 Settings travel with the folder; the Templates plugin is already configured to
 point at `templates/`.
 

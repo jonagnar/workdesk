@@ -18,7 +18,7 @@ Scaffold a new standalone project repo:
 mise run new -- repos/<name>
 ```
 
-That wraps `copier copy --trust ssh://git@git.jonnxor.is:2222/WAAAGH/workdesk.git`
+That wraps `copier copy --trust ssh://git@git.jonnxor.is:2222/WAAAGH/_workdesk.git`
 — the git URL rather than a local path, because copier records the source in
 the generated `.copier-answers.yml`, and an absolute local path there only
 works on the machine that created it. `--trust` lets the post-copy tasks run:
