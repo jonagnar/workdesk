@@ -10,8 +10,10 @@ and the rules — nothing that needs maintaining by hand.
 ├── templates/project/   copier template, every feature a toggle
 ├── backup/              restic → local disk + Backblaze B2
 └── repos/               ignored; every project lives here
-    ├── vault/           Obsidian vault (own repo)
-    └── servers/         Podman Quadlet units per host (own repo)
+    ├── _vault/          core Obsidian vault: capture, review, desk, servers
+    ├── jonnxor-vault/   Obsidian vault for jonnxor-*
+    ├── sogin/           Obsidian vault for sogin-* (the sogin-vault repo)
+    └── servers/         Podman Quadlet units per host (the _servers repo)
 ```
 
 Projects in `repos/` are standalone: config got there by *copy* (a copier
@@ -52,7 +54,7 @@ mise run backup:snapshots        # what's in each repository
 
 - [x] Root of trust: age keypair, sops, key in Bitwarden + paper
 - [x] Copier template with toggles (`mise run new`)
-- [x] Obsidian vault (`repos/vault`, GSD structure)
+- [x] Obsidian vault (`repos/_vault`, GSD structure)
 - [x] Backups: local disk + B2, nightly 03:00, last 3 snapshots each,
       restore-tested 2026-09-19. Forgejo restore rehearsed 2026-09-20.
       Verified automatically each month — silent unless it fails.
@@ -64,7 +66,7 @@ mise run backup:snapshots        # what's in each repository
       router's DDNS name), MikroTik dstnat, ufw, Caddy with a real Let's
       Encrypt certificate. Git over SSH on port 2222.
 - [x] All three repos pushed, branches renamed `master` → `main`:
-      `WAAAGH/workdesk` (public), `WAAAGH/servers` and `jonnxor/vault`
+      `WAAAGH/_workdesk` (public), `WAAAGH/_servers` and `WAAAGH/_vault`
       (private)
 - [x] `workdesk` push-mirrored to
       [github.com/jonagnar/workdesk](https://github.com/jonagnar/workdesk) —
