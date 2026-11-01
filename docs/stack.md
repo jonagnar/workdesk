@@ -20,7 +20,7 @@ To read the current state rather than trusting this page:
 ```bash
 cat ~/.config/mise/config.toml                     # global pins
 mise ls                                            # what's active here
-grep -h '^Image=' repos/servers/hosts/*/quadlet/*.container
+grep -h '^Image=' repos/_servers/hosts/*/quadlet/*.container
 ```
 
 ## System packages
@@ -124,7 +124,7 @@ on start, and migrations are not reversible by changing the tag back.
 | ------- | -------- | ---------------- | ---- |
 | Backblaze B2 | offsite restic repository | local repo survives; see [recovery.md](recovery.md#4-one-backup-repository-is-gone) | [backblaze.com/docs](https://www.backblaze.com/docs/cloud-storage) |
 | Bitwarden | age private key, restic password, B2 keys | paper copy of the age key is the fallback | [bitwarden.com/help](https://bitwarden.com/help/) |
-| ISNIC | DNS for jonnxor.is | nothing resolves — see `repos/servers/dns.md` | [isnic.is](https://www.isnic.is/en) |
+| ISNIC | DNS for jonnxor.is | nothing resolves — see `repos/_servers/dns.md` | [isnic.is](https://www.isnic.is/en) |
 | Let's Encrypt | TLS certificate for git.jonnxor.is, via Caddy | Caddy retries; needs port 80 reachable at renewal | [letsencrypt.org/docs](https://letsencrypt.org/docs/) |
 | MikroTik DDNS | `git` is a CNAME to the router's `sn.mynetname.net` name, so a PPPoE reconnect doesn't strand the domain | the CNAME goes stale; replace with an `A` record | — |
 | GitHub | one-way push mirror of `workdesk` only, to `jonagnar/workdesk` | nothing — the mirror is a convenience, never a dependency | [docs.github.com](https://docs.github.com) |

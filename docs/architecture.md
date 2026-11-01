@@ -74,7 +74,7 @@ conventions, not to maintain a second source of truth about itself. If a
 
 The desk's `mise.toml` once decrypted the B2 credentials into `[env]`. Because
 mise merges parent configs, **every task in every nested project inherited
-them** — `mise env` inside `repos/servers` printed `RESTIC_PASSWORD`.
+them** — `mise env` inside `repos/_servers` printed `RESTIC_PASSWORD`.
 
 Now `backup/run.sh` is invoked through `sops exec-env`, so the credentials
 exist only inside that one process. The general principle: a secret should be
@@ -136,7 +136,7 @@ The trade: three separate firewalls have to agree for it to work (router
 dstnat, ufw, and nothing else holding port 80), the certificate depends on
 port 80 being reachable at renewal time, and a dynamic PPPoE address means DNS
 is a CNAME to the router's DDNS name rather than a fixed record. All of that is
-written up in `repos/servers/dns.md` and the Caddyfile's comments, because
+written up in `repos/_servers/dns.md` and the Caddyfile's comments, because
 every one of them cost time to diagnose the first time.
 
 ## What is deliberately absent

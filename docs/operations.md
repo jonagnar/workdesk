@@ -78,7 +78,7 @@ been exposed.
 ## Deploy a service
 
 ```bash
-cd repos/servers
+cd repos/_servers
 mise run lint                 # generator dry-run — always do this first
 mise run deploy -- hades
 ```
@@ -117,7 +117,7 @@ notes first.
    ```
 
 4. Add a DNS record at ISNIC for the subdomain — a `CNAME` to the router's
-   DDNS name, matching how `git` is done. See `repos/servers/dns.md`.
+   DDNS name, matching how `git` is done. See `repos/_servers/dns.md`.
 5. `mise run lint`, then deploy.
 
 Three firewalls have to agree before anything is reachable from outside: the

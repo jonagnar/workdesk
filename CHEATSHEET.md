@@ -50,7 +50,7 @@ journalctl --user -u restic-backup.service -n 50   # what happened last night
 journalctl --user -u restic-backup.service | grep forgejo:   # did the dump work?
 ```
 
-## Servers (`repos/servers`)
+## Servers (`repos/_servers`)
 
 Forgejo runs on this machine at **https://git.jonnxor.is**, behind Caddy.
 Git over SSH on port 2222. `http://localhost:3000` still works locally.
