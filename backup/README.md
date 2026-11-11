@@ -53,10 +53,23 @@ plain SQL on purpose, so restic can deduplicate it, with a fixed
 (pg_dump otherwise writes a random key every run). It holds customer data, so
 it is owner-only too.
 
+Also `~/Backups/sogin-media/sogin-media.tar`, for Sögin's Media: the files staff
+upload live in a Podman volume (`systemd-sogin-media`, the name Quadlet gives a
+`.volume` unit). `podman volume export` writes it as an uncompressed tar, so
+restic deduplicates it, and owner-only because staff files can include
+unpublished certificates. Until the first deploy creates the volume, the dump
+is skipped with a message.
+
+After both restic runs and both prunes succeed, the backup writes the current
+UTC time to `~/Backups/status/last-backup`, for the Sögin API's health page.
+That folder is deliberately not in `include.txt`, so a restore never writes an
+old time over a newer one; it is 755 and the file 644 so the API container can
+read it through a read-only mount. A failed run leaves the last good time.
+
 A failed dump is logged loudly and does not abort the rest of the backup:
 
 ```bash
-journalctl --user -u restic-backup.service | grep -E 'forgejo:|uptime-kuma:|vaultwarden:|sogin-postgres:'
+journalctl --user -u restic-backup.service | grep -E 'forgejo:|uptime-kuma:|vaultwarden:|sogin-postgres:|sogin-media:'
 ```
 
 ## Verification — automatic, monthly
