@@ -15,6 +15,10 @@ FORGEJO_DUMP_DIR="$HOME/Backups/forgejo"
 KUMA_DUMP_DIR="$HOME/Backups/uptime-kuma"
 VAULTWARDEN_DUMP_DIR="$HOME/Backups/vaultwarden"
 SOGIN_DUMP_DIR="$HOME/Backups/sogin-postgres"
+SOGIN_MEDIA_DUMP_DIR="$HOME/Backups/sogin-media"
+# Quadlet names the volume of a .volume unit without VolumeName systemd-<name>.
+SOGIN_MEDIA_VOLUME="${SOGIN_MEDIA_VOLUME:-systemd-sogin-media}"
+BACKUP_STATUS_DIR="${BACKUP_STATUS_DIR:-$HOME/Backups/status}"
 
 # Forgejo's repositories and database live in a Podman volume, outside the
 # paths restic walks — and its SQLite file cannot be copied safely while the
@@ -143,6 +147,48 @@ dump_sogin() {
 	fi
 }
 
+# Sögin's Media (the files staff upload) lives in a Podman volume, outside the
+# paths restic walks. `podman volume export` writes the whole volume as a tar,
+# which works whether or not the API is running. The volume is skipped with a
+# message until the first deploy creates it.
+#
+# Uncompressed on purpose: restic deduplicates by content, so unchanged files
+# cost nothing on the next snapshot. Staff files can include unpublished
+# certificates, so the dump is readable by its owner only.
+dump_sogin_media() {
+	if ! podman volume exists "$SOGIN_MEDIA_VOLUME" 2>/dev/null; then
+		echo "sogin-media: no volume, skipping dump" >&2
+		return 0
+	fi
+
+	mkdir -p -m 700 "$SOGIN_MEDIA_DUMP_DIR"
+	tmp="$SOGIN_MEDIA_DUMP_DIR/.dump.tmp"
+
+	if (umask 077 && podman volume export "$SOGIN_MEDIA_VOLUME" >"$tmp") 2>/dev/null; then
+		mv "$tmp" "$SOGIN_MEDIA_DUMP_DIR/sogin-media.tar"
+		echo "sogin-media: dumped $(du -h "$SOGIN_MEDIA_DUMP_DIR/sogin-media.tar" | cut -f1)" >&2
+	else
+		rm -f "$tmp"
+		echo "sogin-media: DUMP FAILED — backing up everything else; Sögin Media is NOT covered by this snapshot" >&2
+	fi
+}
+
+# The time of the last good backup, for the Sögin API's health page. Called
+# only after both restic runs and both keep runs have succeeded (set -e stops
+# the script before it otherwise), so a failed run leaves the old time.
+#
+# The folder is outside include.txt on purpose: a restore must never write an
+# old time over a newer one. The API reads it through a read-only mount, so
+# the folder is 755 and the file 644; temp then rename keeps a reader from
+# ever seeing a half-written time.
+write_backup_status() {
+	mkdir -p "$BACKUP_STATUS_DIR"
+	chmod 755 "$BACKUP_STATUS_DIR"
+	date -u +%Y-%m-%dT%H:%M:%SZ >"$BACKUP_STATUS_DIR/last-backup.tmp"
+	chmod 644 "$BACKUP_STATUS_DIR/last-backup.tmp"
+	mv "$BACKUP_STATUS_DIR/last-backup.tmp" "$BACKUP_STATUS_DIR/last-backup"
+}
+
 keep() { restic "$@" forget --keep-last 3 --group-by host --prune; }
 
 case "${1:?usage: run.sh backup|init|snapshots|check|restore-test|restore-sogin|verify}" in
@@ -151,10 +197,12 @@ backup)
 	dump_kuma
 	dump_vaultwarden
 	dump_sogin
+	dump_sogin_media
 	restic -r "$RESTIC_LOCAL" backup --files-from backup/include.txt --exclude-file backup/exclude.txt
 	keep -r "$RESTIC_LOCAL"
 	restic backup --files-from backup/include.txt --exclude-file backup/exclude.txt
 	keep
+	write_backup_status
 	;;
 init)
 	restic -r "$RESTIC_LOCAL" cat config >/dev/null 2>&1 || restic -r "$RESTIC_LOCAL" init
