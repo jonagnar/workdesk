@@ -19,6 +19,10 @@ SOGIN_MEDIA_DUMP_DIR="$HOME/Backups/sogin-media"
 # Quadlet names the volume of a .volume unit without VolumeName systemd-<name>.
 SOGIN_MEDIA_VOLUME="${SOGIN_MEDIA_VOLUME:-systemd-sogin-media}"
 BACKUP_STATUS_DIR="${BACKUP_STATUS_DIR:-$HOME/Backups/status}"
+# Any dump that fails, and a Sögin dump skipped because its container or volume
+# is missing, sets this to 1. The last-backup time is then not written, because
+# that snapshot does not cover everything (D-27, C-WR-03).
+DUMP_FAILED=0
 
 # Forgejo's repositories and database live in a Podman volume, outside the
 # paths restic walks — and its SQLite file cannot be copied safely while the
@@ -43,6 +47,7 @@ dump_forgejo() {
 		echo "forgejo: dumped $(du -h "$FORGEJO_DUMP_DIR/forgejo-dump.tar" | cut -f1)" >&2
 	else
 		rm -f "$tmp"
+		DUMP_FAILED=1
 		echo "forgejo: DUMP FAILED — backing up everything else; forge data is NOT covered by this snapshot" >&2
 	fi
 }
@@ -72,6 +77,7 @@ dump_kuma() {
 		echo "uptime-kuma: dumped $(du -h "$KUMA_DUMP_DIR/uptime-kuma-dump.tar" | cut -f1)" >&2
 	else
 		rm -f "$tmp"
+		DUMP_FAILED=1
 		echo "uptime-kuma: DUMP FAILED — backing up everything else; monitors are NOT covered by this snapshot" >&2
 	fi
 }
@@ -112,6 +118,7 @@ dump_vaultwarden() {
 		echo "vaultwarden: dumped $(du -h "$VAULTWARDEN_DUMP_DIR/vaultwarden-dump.tar" | cut -f1)" >&2
 	else
 		rm -f "$tmp"
+		DUMP_FAILED=1
 		echo "vaultwarden: DUMP FAILED — backing up everything else; the password vault is NOT covered by this snapshot" >&2
 	fi
 }
@@ -131,6 +138,7 @@ dump_vaultwarden() {
 dump_sogin() {
 	if ! podman ps --filter 'name=^sogin-postgres$' --format '{{.Names}}' | grep -q sogin-postgres; then
 		echo "sogin-postgres: not running, skipping dump" >&2
+		DUMP_FAILED=1
 		return 0
 	fi
 
@@ -143,6 +151,7 @@ dump_sogin() {
 		echo "sogin-postgres: dumped $(du -h "$SOGIN_DUMP_DIR/sogin-dump.sql" | cut -f1)" >&2
 	else
 		rm -f "$tmp"
+		DUMP_FAILED=1
 		echo "sogin-postgres: DUMP FAILED — backing up everything else; the Sögin database is NOT covered by this snapshot" >&2
 	fi
 }
@@ -158,6 +167,7 @@ dump_sogin() {
 dump_sogin_media() {
 	if ! podman volume exists "$SOGIN_MEDIA_VOLUME" 2>/dev/null; then
 		echo "sogin-media: no volume, skipping dump" >&2
+		DUMP_FAILED=1
 		return 0
 	fi
 
@@ -169,6 +179,7 @@ dump_sogin_media() {
 		echo "sogin-media: dumped $(du -h "$SOGIN_MEDIA_DUMP_DIR/sogin-media.tar" | cut -f1)" >&2
 	else
 		rm -f "$tmp"
+		DUMP_FAILED=1
 		echo "sogin-media: DUMP FAILED — backing up everything else; Sögin Media is NOT covered by this snapshot" >&2
 	fi
 }
@@ -181,7 +192,15 @@ dump_sogin_media() {
 # old time over a newer one. The API reads it through a read-only mount, so
 # the folder is 755 and the file 644; temp then rename keeps a reader from
 # ever seeing a half-written time.
+#
+# A failed dump, or a skipped Sögin dump, holds the time back too: the snapshot
+# then lacks that data, so the health page keeps the last good time until it
+# reads Gamalt. The backup's exit status does not change.
 write_backup_status() {
+	if [ "$DUMP_FAILED" != 0 ]; then
+		echo "backup-status: not written, a dump failed or a Sögin dump was skipped; the health page keeps the last good time" >&2
+		return 0
+	fi
 	mkdir -p "$BACKUP_STATUS_DIR"
 	chmod 755 "$BACKUP_STATUS_DIR"
 	date -u +%Y-%m-%dT%H:%M:%SZ >"$BACKUP_STATUS_DIR/last-backup.tmp"
