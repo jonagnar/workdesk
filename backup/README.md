@@ -64,7 +64,9 @@ After both restic runs and both prunes succeed, the backup writes the current
 UTC time to `~/Backups/status/last-backup`, for the Sögin API's health page.
 That folder is deliberately not in `include.txt`, so a restore never writes an
 old time over a newer one; it is 755 and the file 644 so the API container can
-read it through a read-only mount. A failed run leaves the last good time.
+read it through a read-only mount. A failed run leaves the last good time, and
+so does a run in which any dump failed or the Sögin database or Media dump was
+skipped (the health page then reads Gamalt after 26 hours).
 
 A failed dump is logged loudly and does not abort the rest of the backup:
 
